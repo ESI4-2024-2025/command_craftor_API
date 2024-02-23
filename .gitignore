@@ -1,0 +1,50 @@
+# Fichiers générés par l'environnement de développement
+/node_modules
+/dist
+/.vscode
+/.idea
+
+# Fichiers de sauvegarde
+*.bak
+*.swp
+
+# Fichiers de configuration
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Fichiers de logs
+/logs
+*.log
+
+# Fichiers de build
+/build
+/coverage
+
+# Fichiers spécifiques à certains éditeurs
+.vs
+
+# Fichiers de dépendances
+/package-lock.json
+/yarn.lock
+
+# Fichiers de cache
+/.cache
+
+# Fichiers de sauvegarde automatique
+*.backup
+*.save
+*.sav
+*.bak
+*.swp
+*~
+
+# Fichiers de configuration de l'éditeur
+.editorconfig
+.eslintcache
+
+# Fichiers d'installation
+node_modules/

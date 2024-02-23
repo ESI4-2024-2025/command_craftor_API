@@ -1,23 +1,15 @@
 // Require controller modules.
 const Request = require('../controllers/requestControllers')
-
+const { body, validationResult, check } = require('express-validator');
+const requestModel = require('../models/requestModel');
 const { authJwt } = require("../middlewares");
+const express = require('express'); // Import the express module
 
 module.exports = function (app) {
-    app.use(function (req, res, next) {
-        res.header(
-            "Access-Control-Allow-Headers",
-            "x-token-acces, Origin, Content-Type, Accept"
-        );
-        next();
-    });
 
     //Get
-    app.get('/getRequest', [authJwt.verifyToken], Request.getRequest)
+    app.get('/getRequest', Request.getRequest)
     //Post
-    app.post('/addRequest', [authJwt.verifyToken], Request.addRequest)
-    //Put
-    app.put('/updateRequest', [authJwt.verifyToken], Request.updateRequest)
-    //Delete
-    app.delete('/deleteRequest', [authJwt.verifyToken], Request.deleteRequest)
+    app.post('/ARequest', Request.Request)
+
 }
