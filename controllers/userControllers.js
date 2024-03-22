@@ -97,10 +97,13 @@ exports.logout = (req, res) => {
 //================ Get ======================//
 exports.getCurrentProfile = async (req, res) => {
   try {
-    const jwt = req.headers['x-access-token'];
-    const user = await authJwt.identifyUser(jwt);
+    // const jwt = req.headers['x-access-token'];
+    // const user = await authJwt.identifyUser(jwt);
+    console.log(req.body.email)
+    const email = req.body.email;
+    console.log(email);
 
-    userModels.findOne({ email: user?.email }, (err, docs) => {
+    userModels.findOne({ email: email }, (err, docs) => {
       if (!err) {
         docs.password = undefined;
         /* #swagger.responses[200] = {
@@ -179,39 +182,22 @@ exports.emailValidationUpdate = (req, res) => {
 
 
 //================ Delete ======================//
-exports.delete = (req, res) => {
+exports.deleteUser = (req, res) => {
   try {
     const id = req.body._id;
-
-    let config = {
-      method: 'delete',
-      maxBodyLength: Infinity,
-      url: process.env.LINK_API + '/user/delete',
-      headers: {
-        'X-User-ID': id
-      },
-    };
 
     if (!ObjectID.isValid(id)) {
       return res.status(400).send(`No record with given id: ${id}`);
     }
 
-    userModels.findByIdAndRemove(id, async (err, docs) => {
+    userModels.findByIdAndDelete(id, async (err, docs) => {
       if (!err) {
         const result = {
           data: docs,
           message: 'Post has been removed successfully.',
           status: 200,
         };
-
-        try {
-          //error 404
-          const response = await axios.request(config);
-          console.log(response.data);
-          res.status(200).send(result);
-        } catch (error) {
-          res.status(500).send(error.message);
-        }
+        res.status(200).send(result);
       } else {
         res.status(500).send(err);
       }
@@ -222,47 +208,40 @@ exports.delete = (req, res) => {
   }
 };
 
+exports.deleteFavorite = async (req, res) => {
+  try {
+    const id = req.body._id;
+    const favorite = req.body.favorite;
+
+    if (!ObjectID.isValid(id)) {
+      return res.status(400).send(`No record with given id: ${id}`);
+    }
+
+    const favoriteId = ObjectID(favorite);
+    userModels.findByIdAndUpdate(id, { $pull: { favoris: favoriteId } }, { new: true }, (err, docs) => {
+      if (!err) {
+        res.status(200).send(docs);
+      } else {
+        console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
+        res.status(500).send('An error occurred while adding the favorite.');
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('An error occurred while adding the favorite.');
+  }
+};
 
 //================ Post ======================//
 exports.register = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
     if (req.body.password === null || req.body.password === undefined || req.body.password === '') {
       return res.status(400).json({ errors: "Le mot de passe ne peut pas être vide" });
     }
-
     req.body.password = encryptPassword(req.body.password);
     const newUser = new userModels(req.body);
-
-    const savedUser = await newUser.save();
-    try {
-      const instance = axios.create({
-        httpsAgent: new https.Agent({
-          rejectUnauthorized: false
-        })
-      });
-      await instance.post(process.env.LINK_API + '/register', { UserId: savedUser._id });
-      await sendMailVerifyEmail(req)
-      res.status(201).send("Votre compte a bien ete cree. Veuillez maintenant vous connecter.");
-    } catch (err) {
-      const id = savedUser._id;
-      console.log('Probleme avec l\'API')
-      console.log(err.message)
-      userModels.findByIdAndRemove(id, async (err, docs) => {
-        if (!err) {
-          const result = {
-            message: 'Probleme avec l\'API',
-            status: 500,
-          };
-          res.status(500).send(result);
-        } else {
-          res.status(500).send(err);
-        }
-      });
-    }
+    await newUser.save(); // Ajoutez cet appel pour sauvegarder le nouvel utilisateur dans la base de données
+    res.status(201).json(newUser); // Répond avec le nouvel utilisateur créé
   } catch (err) {
     console.log('err', err);
     res.status(500).send(err);
@@ -293,6 +272,30 @@ exports.emailPasswordReset = (req, res) => {
 };
 
 //================ Put ======================//
+exports.addFavorite = async (req, res) => {
+  try {
+    const id = req.body._id;
+    const favorite = req.body.favorite;
+
+    if (!ObjectID.isValid(id)) {
+      return res.status(400).send(`No record with given id: ${id}`);
+    }
+
+    const favoriteId = ObjectID(favorite);
+    userModels.findByIdAndUpdate(id, { $push: { favoris: favoriteId } }, { new: true }, (err, docs) => {
+      if (!err) {
+        res.status(200).send(docs);
+      } else {
+        console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
+        res.status(500).send('An error occurred while adding the favorite.');
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('An error occurred while adding the favorite.');
+  }
+};
+
 exports.emailVerify = async (req, res) => {
   try {
     userModels.find({ email: req.body.email }, (err, docs) => {
@@ -341,10 +344,6 @@ exports.profileUpdate = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
-    }
-
-    if (req.body.password) {
-      req.body.password = encryptPassword(req.body.password);
     }
 
     if (req.body.password) {

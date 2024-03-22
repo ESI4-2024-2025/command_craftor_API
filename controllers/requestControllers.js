@@ -1,6 +1,12 @@
 const requestModels = require('../models/requestModel')
 
 //================ Get ======================//
+
+/**
+ * Get the latest 5 requests sorted by nbutilisation in descending order.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ */
 exports.getRequest = async (req, res) => {
   try {
     requestModels.find()
@@ -21,16 +27,23 @@ exports.getRequest = async (req, res) => {
 };
 
 //================ Post ======================//
+
+/**
+ * Create or update a request.
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ */
 exports.Request = async (req, res) => {
   try {
-    console.log(req.body);
+    // Vérifier si la commande est vide
     if (req.body.Commande === null || req.body.Commande === undefined || req.body.Commande === '') {
       return res.status(400).json({ errors: "La commande ne peut pas être vide" });
     }
+    // Vérifier si la version est vide
     if (req.body.Version === null || req.body.Version === undefined || req.body.Version === '') {
       return res.status(400).json({ errors: "La version ne peut pas être vide" });
     }
-    console.log(req.body.Commande);
+
     // Vérifier si la commande existe
     const existingRequest = await requestModels.findOne({ command: req.body.Commande });
     if (existingRequest) {
@@ -44,7 +57,6 @@ exports.Request = async (req, res) => {
           nbutilisation: existingRequest.nbutilisation + 1
         }
       }, { new: true });
-      console.log(updatedRequest);
       res.status(200).send(updatedRequest);
     } else {
       // Ajouter la nouvelle requête à la liste
@@ -54,7 +66,6 @@ exports.Request = async (req, res) => {
         nbutilisation: 1
       });
       const savedRequest = await newRequest.save();
-      console.log(savedRequest);
       res.status(200).send(savedRequest);
     }
   } catch (err) {

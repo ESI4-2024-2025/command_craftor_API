@@ -17,11 +17,11 @@ module.exports = function (app) {
     app.post('/users/login', [
         body('email').isEmail().isLength({ max: 255 }),
         body('password').isLength({ max: 255 })
-    ], User.login)
+    ], User.login) //OK
     //Get
-    app.get('/users', User.getAllUsers)
-    app.get('/users/current', /*[authJwt.verifyToken],*/ User.getCurrentProfile)
-    app.get('/users/email/validationupdate/:email', User.emailValidationUpdate)
+    app.get('/users', User.getAllUsers)    //OK
+    app.get('/users/current', /*[authJwt.verifyToken],*/ User.getCurrentProfile) //OK
+    app.get('/users/email/validationupdate/:email', User.emailValidationUpdate)  //A tester PLUS TARD
     //Put
     app.put('/users/update', /*[authJwt.verifyToken],*/[
         body('username').isLength({ max: 30 }).custom(async (value, { req }) => {
@@ -66,11 +66,11 @@ module.exports = function (app) {
             });
         }),
         body('password').isLength({ max: 255 })
-    ], User.profileUpdate)
-    app.put('/users/email/password-modify', [body('password').isLength({ max: 255 })], User.passwordModify)
-    app.put('/users/email/verify', User.emailVerify)
+    ], User.profileUpdate) //Besoin Token
+    app.put('/users/email/password-modify', [body('password').isLength({ max: 255 })], User.passwordModify) //A tester PLUS TARD
+    app.put('/users/email/verify', User.emailVerify) //A tester PLUS TARD
     //Post
-    // app.post('/users/addFavorite', body, /*[authJwt.verifyToken],*/ User.addFavorite)
+    app.put('/users/addFavorite', /*[authJwt.verifyToken],*/ User.addFavorite) //Ok
     app.post('/users/register', [
         body('username').isLength({ max: 30 }).custom((value) => {
             return userModel.findOne({ username: value }).then((user) => {
@@ -110,13 +110,13 @@ module.exports = function (app) {
             }
         }),
         body('password').isLength({ max: 255 })
-    ], User.register)
-    app.post('/users/email/PasswordReset', User.emailPasswordReset)
+    ], User.register) //OK
+    app.post('/users/email/PasswordReset', User.emailPasswordReset) //A tester PLUS TARD
     //Delete
-    // app.delete('/users/deleteFavorite', /*[authJwt.verifyToken],*/ User.deleteFavorite)
-    // app.delete('/users/deleteUser', /*[authJwt.verifyToken],*/ User.deleteUser)
+    app.delete('/users/deleteFavorite', /*[authJwt.verifyToken],*/ User.deleteFavorite) //Ok 
+    app.delete('/users/deleteUser', /*[authJwt.verifyToken],*/ User.deleteUser) //OK
     //Token
-    app.put('/verify-token', [authJwt.verifyToken])
+    app.put('/verify-token', [authJwt.verifyToken]) //A tester PLUS TARD
 }
 
 function isValidPhoneNumber(phoneNumber) {

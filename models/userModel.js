@@ -11,4 +11,4 @@ const userSchema = Schema({
     favoris: { type: Array, required: false, default: false },
 })
 
-module.exports = mongoose.model('user', userSchema, 'user')
+module.exports = mongoose.model('Users', userSchema, 'Users')
