@@ -1,5 +1,4 @@
 const requestModels = require('../models/requestModel')
-
 //================ Get ======================//
 
 /**
@@ -35,19 +34,19 @@ exports.getRequest = async (req, res) => {
  */
 exports.Request = async (req, res) => {
   try {
-    // Vérifier si la commande est vide
-    if (req.body.Commande === null || req.body.Commande === undefined || req.body.Commande === '') {
-      return res.status(400).json({ errors: "La commande ne peut pas être vide" });
+    // Vérifier si la Command est vide
+    if (req.body.Command === null || req.body.Command === undefined || req.body.Command === '') {
+      return res.status(400).json({ errors: "La Commande ne peut pas être vide" });
     }
     // Vérifier si la version est vide
     if (req.body.Version === null || req.body.Version === undefined || req.body.Version === '') {
       return res.status(400).json({ errors: "La version ne peut pas être vide" });
     }
 
-    // Vérifier si la commande existe
-    const existingRequest = await requestModels.findOne({ command: req.body.Commande });
+    // Vérifier si la Command existe
+    const existingRequest = await requestModels.findOne({ command: req.body.Command });
     if (existingRequest) {
-      // Mettre à jour la commande existante
+      // Mettre à jour la Command existante
       if (existingRequest.version.includes(req.body.Version)) {
         return res.status(400).json({ errors: "La version existe déjà" });
       }
@@ -61,7 +60,7 @@ exports.Request = async (req, res) => {
     } else {
       // Ajouter la nouvelle requête à la liste
       const newRequest = new requestModels({
-        command: req.body.Commande,
+        command: req.body.Command,
         version: req.body.Version,
         nbutilisation: 1
       });

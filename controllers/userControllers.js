@@ -9,6 +9,7 @@ const { authJwt } = require('../middlewares')
 const { SHA256 } = require('crypto-js');
 const https = require("https");
 const fs = require('fs');
+const e = require('cors');
 
 //================ Upload ======================//
 async function convertImageToBase64(filePath) {
@@ -37,7 +38,7 @@ function encryptPassword(password) {
 
 //================ Contenue Transporteur ======================//
 let transporter = nodemailer.createTransport({
-  host: 'smtp-fr.securemail.pro',
+  host: 'smtp.orange.fr',
   port: 465,
   secure: true, // true for 465, false for other ports
   auth: {
@@ -251,12 +252,18 @@ exports.register = async (req, res) => {
 exports.emailPasswordReset = (req, res) => {
   async function main() {
     try {
-      userModels.find({ email: req.body.email }, (err, docs) => {
+      userModels.find({ email: req.body.email }, async (err, docs) => {
         if (!err && docs.length > 0) {
           console.log("Email Found : " + req.body.email);
-          req.userId = docs._id
-          sendMailPasswordReset(req);
-          res.status(200).send("Email 'Reset de Mots de Passe' Envoyer");
+          // console.log(docs[0])
+          req.userId = docs[0]._id
+          const ress = await sendMailPasswordReset(req);
+          if (ress === undefined) {
+            res.status(200).send("Email 'Reset de Mots de Passe' Envoyer");
+          }
+          else {
+            res.status(500).send('An error occurred while sending email.');
+          }
         } else {
           console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
           res.status(500).send(err);
@@ -306,9 +313,13 @@ exports.emailVerify = async (req, res) => {
       }
     });
 
-    await sendMailVerifyEmail(req);
-
-    res.status(200).send("Email 'Verification de Mail' Envoyer");
+    const ress = await sendMailVerifyEmail(req);
+    if (ress === undefined) {
+      res.status(200).send("Email 'Verification de Mail' Envoyer");
+    }
+    else {
+      res.status(500).send('An error occurred while sending email.');
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
@@ -325,14 +336,18 @@ exports.passwordModify = async (req, res) => {
 
     // Récupérer l'e-mail associé à cet utilisateur
     const user = await userModels.findById(id);
-    console.log(user)
+    // console.log(user)
 
     const userEmail = user.email;
 
     // Envoyer le courriel de confirmation avec le nouvel e-mail
-    await sendMailpasswordModify(userEmail);
-
-    res.status(200).send("Email 'Modification de Mots de Passe' Envoyé");
+    const ress = await sendMailpasswordModify(userEmail);
+    if (ress === undefined) {
+      res.status(200).send("Email 'Modification de Mots de Passe' Envoyé");
+    }
+    else {
+      res.status(500).send('An error occurred while sending email.');
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
@@ -377,14 +392,14 @@ exports.profileUpdate = async (req, res) => {
 async function sendMailPasswordReset(req) {
   try {
     await transporter.sendMail({
-      from: '"No Stairs To Heaven" <contact@nostairstoheaven.fun>', // Adresse e-mail de l'expéditeur
+      from: `"Command Craftor" <${process.env.EMAIL}>`, // Adresse e-mail de l'expéditeur
       to: req.body.email, // Adresse e-mail du destinataire
-      subject: 'Réinitialisation de votre mot de passe - No Stairs To Heaven', // Sujet de l'e-mail
+      subject: 'Réinitialisation de votre mot de passe - Command Craftor', // Sujet de l'e-mail
       html:
         `<h2>Réinitialisation de votre mot de passe</h2>
     <p>Suite à votre demande de réinitialisation de mot de passe, veuillez suivre les instructions ci-dessous.</p>
     <p>Appuyez sur le bouton ci-dessous pour changer votre mot de passe :</p>
-    <a href="${process.env.PAGE_REDIRECTION + '/modify-password/' + req.userId}">
+    <a href="${process.env.LINK_FRONT + '/modify-password/' + req.userId}">
       <button class="reset_password_button" style="width: 150px; padding: 10px; margin-left: 10px; font-size: 12px; text-transform: uppercase; position: relative; border-radius: 90px; border: 2px solid #F85242; background: #F85242; color: #FFFFFF; cursor: pointer; font-family: 'Insomnia', sans-serif; overflow: hidden; z-index: 1;">Changer de mot de passe
         <span style="background: #F85242; height: 100%; width: 0; border-radius: 25px; position: absolute; left: 0; bottom: 0; z-index: -1; transition: width 0.5s;"></span>
       </button>
@@ -404,11 +419,11 @@ async function sendMailVerifyEmail(req) {
     // const bs64 = await convertImageToBase64(imagePath);
     // console.log(bs64)
 
-    const url = process.env.LINK_OWN_API + '/users/email/validationupdate/:email=' + req.body.email;
+    const url = process.env.LINK_FRONT + '/users/email/validationupdate/:email=' + req.body.email;
     await transporter.sendMail({
-      from: '"No Stairs To Heaven" <contact@nostairstoheaven.fun>',
+      from: `"Command Craftor" <${process.env.EMAIL}>`,
       to: req.body.email,
-      subject: 'NSTH - Verifier votre Mail',
+      subject: 'Command Craftor - Verifier votre Mail',
       html:
         `<h2>Verification de Mail</h2>
          <p>Appuyez sur le bouton pour pouvoir Valider Votre Mail</p>
@@ -427,6 +442,7 @@ async function sendMailVerifyEmail(req) {
     console.log('Email sent successfully');
   } catch (err) {
     console.error('Error while sending email:', err);
+    return res.status
   }
 }
 
@@ -434,9 +450,9 @@ async function sendMailpasswordModify(userEmail) {
   try {
     await transporter.sendMail({
       secure: false, // true for 465, false for other ports
-      from: '"No Stairs To Heaven" <contact@nostairstoheaven.fun>', // Adresse e-mail de l'expéditeur
+      from: `"Command Craftor" <${process.env.EMAIL}>`, // Adresse e-mail de l'expéditeur
       to: userEmail, // Adresse e-mail du destinataire
-      subject: 'NSTH - Changement de Mots de Passe', // Sujet de l'e-mail
+      subject: 'Command Craftor - Changement de Mots de Passe', // Sujet de l'e-mail
       html:
         '<h2>Modification de Mots de passe</h2><p>Votre mot de passe a été modifié.</p>', // Contenu HTML de l'e-mail
     });

@@ -1,0 +1,519 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Documentation",
+    "version": "1.0.0",
+    "description": "Documentation for your API"
+  },
+  "paths": {
+    "/getRequest": {
+      "get": {
+        "tags": [
+          "Requete"
+        ],
+        "summary": "Get the latest 5 requests sorted by nbutilisation in descending order.",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Request"
+                  }
+                },
+                "example": [
+                  {
+                    "Command": "/give @p minecraft:diamond 1",
+                    "Version": [
+                      "1.0",
+                      "1.1"
+                    ],
+                    "nbutilisation": 5
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ARequest": {
+      "post": {
+        "tags": [
+          "Requete"
+        ],
+        "summary": "Create or update a request.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Request"
+              },
+              "example": {
+                "Command": "/exampleCommand",
+                "Version": [
+                  "1.0",
+                  "1.1"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Request"
+                },
+                "example": {
+                  "Command": "/give @p minecraft:diamond 1",
+                  "Version": [
+                    "1.0",
+                    "1.1"
+                  ],
+                  "nbutilisation": 1
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Obtenez tous les utilisateurs.",
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Réponse réussie"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/email/validationupdate/{email}": {
+      "get": {
+        "summary": "Met à jour la validation de l'email pour un utilisateur.",
+        "tags": [
+          "Users/Email"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "L'email de l'utilisateur à valider."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réponse réussie"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Connectez-vous avec votre email et mot de passe.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/register": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Enregistrez un nouvel utilisateur.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "email",
+                  "phone",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Utilisateur enregistré avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/email/PasswordReset": {
+      "post": {
+        "tags": [
+          "Users/Email"
+        ],
+        "summary": "Réinitialisez le mot de passe de l'utilisateur via email.",
+        "responses": {
+          "200": {
+            "description": "Email de réinitialisation du mot de passe envoyé avec succès"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/current": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Obtenez le profil de l'utilisateur connecté.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réponse réussie"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/update": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Mettre à jour le profil de l'utilisateur.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "username",
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profil utilisateur mis à jour avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/email/password-modify": {
+      "put": {
+        "tags": [
+          "Users/Email"
+        ],
+        "summary": "Modifier le mot de passe de l'utilisateur.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "maxLength": 255
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mot de passe modifié avec succès"
+          },
+          "400": {
+            "description": "Requête invalide"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/email/verify": {
+      "put": {
+        "tags": [
+          "Users/Email"
+        ],
+        "summary": "Vérifier l'adresse email de l'utilisateur.",
+        "responses": {
+          "200": {
+            "description": "Adresse email vérifiée avec succès"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/addFavorite": {
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Ajoutez un élément aux favoris de l'utilisateur.",
+        "responses": {
+          "200": {
+            "description": "Favori ajouté avec succès"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/verify-token": {
+      "put": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Vérifiez le jeton d'authentification de l'utilisateur.",
+        "responses": {
+          "200": {
+            "description": "Jeton vérifié avec succès"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/deleteFavorite": {
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Supprimez un élément des favoris de l'utilisateur.",
+        "responses": {
+          "200": {
+            "description": "Favori supprimé avec succès"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    },
+    "/users/deleteUser": {
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Supprimez le compte de l'utilisateur.",
+        "responses": {
+          "200": {
+            "description": "Utilisateur supprimé avec succès"
+          },
+          "500": {
+            "description": "Erreur serveur interne"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Request": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "example": "/give @p minecraft:diamond 1"
+          },
+          "version": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "1.0",
+              "1.1"
+            ],
+            "required": true
+          },
+          "nbutilisation": {
+            "type": "integer",
+            "example": 5
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "Le nom d'utilisateur de l'utilisateur."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "L'adresse email de l'utilisateur."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Le numéro de téléphone de l'utilisateur."
+          },
+          "password": {
+            "type": "string",
+            "description": "Le mot de passe de l'utilisateur."
+          },
+          "email_verified": {
+            "type": "boolean",
+            "description": "Indique si l'email de l'utilisateur a été vérifié."
+          },
+          "favoris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Les favoris de l'utilisateur."
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Requete",
+      "description": "Opérations liées aux commande"
+    },
+    {
+      "name": "Users",
+      "description": "Opérations liées aux utilisateurs"
+    },
+    {
+      "name": "Users/Email",
+      "description": "Opérations liées aux Emails"
+    },
+    {
+      "name": "Token",
+      "description": "Opérations liées aux Tokens"
+    }
+  ]
+}
