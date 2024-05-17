@@ -124,6 +124,9 @@ function isValidPhoneNumber(phoneNumber) {
     const phoneRegex = /^\+?1?(\d{10,12}$)/;
     return phoneRegex.test(phoneNumber);
 }
+
+// Header Swagger
+
 /**
 * @swagger
 * components:
