@@ -37,7 +37,7 @@ module.exports = function (app) {
 
     /**
      * @swagger
-     * /items:
+     * /getItem:
      *   get:
      *     tags: [Item]
      *     summary: Get all items
@@ -54,5 +54,7 @@ module.exports = function (app) {
 
     //Get
     app.get('/getItem', Item.getItem)
+
+    // app.post('/addItem', Item.addMateriaux);
 
 }

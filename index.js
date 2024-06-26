@@ -48,6 +48,14 @@ const RequestRoutes = require('./routes/Request')
 app.use('/request', RequestRoutes)
 require('./routes/Request')(app)
 
+const ItemRoutes = require('./routes/Item')
+app.use('/item', ItemRoutes)
+require('./routes/Item')(app)
+
+const BlocRoutes = require('./routes/Bloc')
+app.use('/bloc', BlocRoutes)
+require('./routes/Bloc')(app)
+
 app.listen(process.env.PORT ?? 5000, () => {
   // eslint-disable-next-line no-console
   console.log('=====================')

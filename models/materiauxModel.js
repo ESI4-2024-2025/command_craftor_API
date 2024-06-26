@@ -8,4 +8,4 @@ const materiauxSchema = Schema({
     identifier: { type: String, required: true },
 });
 
-module.exports = mongoose.model('Type', materiauxSchema);
+module.exports = mongoose.model('materiau', materiauxSchema);
