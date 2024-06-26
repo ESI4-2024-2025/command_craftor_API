@@ -1,6 +1,7 @@
 const Item = require('../models/itemModel');
 const Enchant = require('../models/enchantModel');
 const Materiaux = require('../models/materiauxModel');
+const Version = require('../models/VersionsModel');
 
 /**
  * Get the latest 5 requests sorted by nbutilisation in descending order.
@@ -10,17 +11,19 @@ const Materiaux = require('../models/materiauxModel');
 exports.getItem = async (req, res) => {
     try {
         const items = await Item.find()
-            .select('Nom identifier enchantement materiaux')
+            .select('Nom identifier enchantement materiaux version') // Sélectionnez également la version
             .exec();
 
         const populatedItems = await Promise.all(items.map(async (item) => {
             const enchantements = await Enchant.find({ number: { $in: item.enchantement } }).select('nom identifier lvlMax');
             const materiaux = await Materiaux.find({ number: { $in: item.materiaux } }).select('nom identifier');
+            const versions = await Version.find({ number: { $in: item.version } }).select('name version'); // Correction de l'attribut versions
 
             return {
                 ...item.toObject(),
                 enchantement: enchantements,
-                materiaux: materiaux
+                materiaux: materiaux,
+                version: versions
             };
         }));
 
@@ -76,6 +79,17 @@ exports.addMateriaux = async (req, res) => {
         const newMateriaux = new Materiaux(req.body);
         const savedMateriaux = await newMateriaux.save();
         res.status(201).send(savedMateriaux);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("An error occurred, Retry Later.");
+    }
+};
+
+exports.addVersion = async (req, res) => {
+    try {
+        const newVersion = new Version(req.body);
+        const savedVersion = await newVersion.save();
+        res.status(201).send(savedVersion);
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
