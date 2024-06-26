@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const versionschema = Schema({
     number: { type: Number, required: true, unique: true },
-    name: { type: Number, required: true },
+    value: { type: Number, required: true },
     version: { type: String, required: true },
 });
 
