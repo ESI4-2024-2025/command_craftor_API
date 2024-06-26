@@ -7,6 +7,7 @@ const enchantSchema = Schema({
     nom: { type: String, required: true },
     identifier: { type: String, required: true },
     lvlMax: { type: Number, required: true },
+    version: [{ type: Number, ref: 'Version' }] // Tableau de Numbers pour version
 });
 
 module.exports = mongoose.model('Enchant', enchantSchema);

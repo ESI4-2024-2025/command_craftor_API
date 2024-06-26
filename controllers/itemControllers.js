@@ -10,25 +10,32 @@ const Version = require('../models/VersionsModel');
  */
 exports.getItem = async (req, res) => {
     try {
+        // Récupérer tous les items
         const items = await Item.find()
-            .select('Nom identifier enchantement materiaux version') // Sélectionnez également la version
+            .select('Nom identifier enchantement materiaux')
             .exec();
 
+        // Peupler manuellement les enchantements et matériaux
         const populatedItems = await Promise.all(items.map(async (item) => {
-            const enchantements = await Enchant.find({ number: { $in: item.enchantement } }).select('nom identifier lvlMax');
+            const enchantements = await Enchant.find({ number: { $in: item.enchantement } }).select('nom identifier lvlMax version');
             const materiaux = await Materiaux.find({ number: { $in: item.materiaux } }).select('nom identifier');
-            const versions = await Version.find({ number: { $in: item.version } }).select('name version'); // Correction de l'attribut versions
+
+            // Peupler les versions pour chaque enchantement
+            const populatedEnchantements = await Promise.all(enchantements.map(async (enchant) => {
+                const versions = await Version.find({ number: { $in: enchant.version } }).select('name version');
+                return {
+                    ...enchant.toObject(),
+                    version: versions
+                };
+            }));
 
             return {
                 ...item.toObject(),
-                enchantement: enchantements,
-                materiaux: materiaux,
-                version: versions
+                enchantement: populatedEnchantements,
+                materiaux: materiaux
             };
         }));
 
-        // console.log('items : ', items);
-        // console.log('populatedItems : ', populatedItems);
         res.status(200).send(populatedItems);
     } catch (err) {
         console.error(err);
