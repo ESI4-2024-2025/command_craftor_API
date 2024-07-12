@@ -12,7 +12,7 @@ exports.getItem = async (req, res) => {
     try {
         // Récupérer tous les items
         const items = await Item.find()
-            .select('Nom identifier enchantement materiaux')
+            .select('nom identifier enchantement materiaux')
             .exec();
 
         // Peupler manuellement les enchantements et matériaux
