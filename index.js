@@ -32,8 +32,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 require('./config/database')
 
+const corsOptions = {
+  origin: ['https://commandcraftor.ebasson.fr', 'http://localhost:3000'],
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
 app.use(express.json())
-app.use(cors())
+app.use(cors(corsOptions))
 
 // parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }))
