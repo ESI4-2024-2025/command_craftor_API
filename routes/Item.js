@@ -55,6 +55,6 @@ module.exports = function (app) {
     //Get
     app.get('/getItem', Item.getItem)
 
-    // app.post('/addItem', Item.addVersion);
+    app.post('/addItem', Item.addItem);
 
 }
