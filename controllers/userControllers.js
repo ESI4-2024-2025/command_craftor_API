@@ -98,31 +98,29 @@ exports.logout = (req, res) => {
 //================ Get ======================//
 exports.getCurrentProfile = async (req, res) => {
   try {
-    // const jwt = req.headers['x-access-token'];
-    // const user = await authJwt.identifyUser(jwt);
-    console.log(req.body.email)
-    const email = req.body.email;
-    console.log(email);
+    const token = req.headers['x-access-token'];
+    if (!token) {
+      return res.status(401).send('Access token is missing');
+    }
 
-    userModels.findOne({ email: email }, (err, docs) => {
-      if (!err) {
-        docs.password = undefined;
-        /* #swagger.responses[200] = {
-            description: "Récupérer le profil de l'utilisateur courant.",
-            schema: {
-              "_id": "644ba18b59abc94a82f90e53",
-              "username": "ilhan",
-              "email": "ilhan.koprulu@ecole-isitech.fr",
-              "phone": "0708090405",
-              "email_verified": false,
-              "__v": 0
-            }
-        } */
-        res.status(200).send(docs);
-      } else {
-        res.status(403);
-        console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+    jwt.verify(token, accessTokenSecret, (err, decoded) => {
+      if (err) {
+        return res.status(401).send('Invalid access token');
       }
+
+      const email = decoded.email;
+      userModels.findOne({ email: email }, (err, docs) => {
+        if (err) {
+          res.status(500).send('An error occurred while retrieving the current profile.');
+          console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+        } else if (!docs) {
+          res.status(404).send('User not found.');
+          console.log('User not found for email: ' + email);
+        } else {
+          docs.password = undefined;
+          res.status(200).send(docs);
+        }
+      });
     });
   } catch (err) {
     console.error(err);
