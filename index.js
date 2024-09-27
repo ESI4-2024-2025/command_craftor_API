@@ -3,7 +3,8 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const cors = require('cors')
-
+const https = require('https')
+const fs = require('fs')
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerJSDoc = require('swagger-jsdoc');
@@ -21,14 +22,11 @@ const options = {
   apis: ['./routes/*.js'], // Spécifiez ici le chemin vers vos fichiers de routes contenant les annotations Swagger
 };
 
-
 // Initialise swagger-jsdoc
 const swaggerSpec = swaggerJSDoc(options);
 
 // Middleware pour servir la documentation Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-
 
 require('./config/database')
 
@@ -60,12 +58,17 @@ const BlocRoutes = require('./routes/Bloc')
 app.use('/bloc', BlocRoutes)
 require('./routes/Bloc')(app)
 
-app.listen(process.env.PORT ?? 5000, () => {
+const httpsOptions = {
+  key: fs.readFileSync('/etc/letsencrypt/live/www.ebasson.fr/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/www.ebasson.fr/fullchain.pem')
+};
+
+https.createServer(httpsOptions, app).listen(process.env.PORT ?? 3002, () => {
   // eslint-disable-next-line no-console
   console.log('=====================')
   console.log('')
   console.log('############')
-  console.log(`The node express app is listening at http://127.0.0.1: ${process.env.PORT}`)
+  console.log(`The node express app is listening at https://127.0.0.1:${process.env.PORT ?? 3002}`)
   console.log('############')
   console.log('')
   console.log('=====================')
