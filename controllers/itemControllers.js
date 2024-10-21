@@ -17,7 +17,7 @@ exports.getItem = async (req, res) => {
 
         // Peupler manuellement les enchantements et matériaux
         const populatedItems = await Promise.all(items.map(async (item) => {
-            const enchantements = await Enchant.find({ number: { $in: item.enchantement } }).select('nom identifier lvlMax version');
+            const enchantements = await Enchant.find({ number: { $in: item.enchantement } }).select('nom identifier lvlMax version minecraft_id');
             const materiaux = await Materiaux.find({ number: { $in: item.materiaux } }).select('nom identifier');
 
             // Peupler les versions pour chaque enchantement
