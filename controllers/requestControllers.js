@@ -48,7 +48,9 @@ exports.Request = async (req, res) => {
     if (existingRequest) {
       // Mettre à jour la Command existante
       if (existingRequest.version.includes(req.body.Version)) {
-        return res.status(400).json({ errors: "La version existe déjà" });
+        existingRequest.nbutilisation += 1;
+        const updatedRequest = await existingRequest.save();
+        return res.status(200).send(updatedRequest);
       }
       const updatedRequest = await requestModels.findByIdAndUpdate(existingRequest._id, {
         $set: {
