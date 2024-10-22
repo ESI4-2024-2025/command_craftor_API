@@ -4,7 +4,6 @@ const { Schema } = mongoose;
 
 const enchantSchema = Schema({
     number: { type: Number, unique: true },
-    nom: { type: String, required: true },
     identifier: { type: String, required: true },
     lvlMax: { type: Number, required: true },
     version: { type: Number, ref: 'Version' }, // Single Number for version

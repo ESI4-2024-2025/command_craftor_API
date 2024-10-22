@@ -3,7 +3,6 @@ const Schema = mongoose.Schema;
 
 const materiauxSchema = new Schema({
     number: { type: Number, unique: true },
-    nom: { type: String, required: true },
     identifier: { type: String, required: true },
     version: { type: Number, required: true }
 });

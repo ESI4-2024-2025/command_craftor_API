@@ -12,15 +12,15 @@ exports.getItem = async (req, res) => {
     try {
         // Récupérer tous les items
         const items = await Item.find()
-            .select('nom identifier enchantement materiaux version')
+            .select('identifier enchantement materiaux version')
             .exec();
 
         // Peupler manuellement les enchantements et matériaux
         const populatedItems = await Promise.all(items.map(async (item) => {
             const enchantements = await Enchant.find({ number: { $in: item.enchantement } })
-                .select('nom identifier lvlMax version minecraft_id');
+                .select('identifier lvlMax version minecraft_id');
             const materiaux = await Materiaux.find({ number: { $in: item.materiaux } })
-                .select('nom identifier version');
+                .select('identifier version');
 
             return {
                 ...item.toObject(),
