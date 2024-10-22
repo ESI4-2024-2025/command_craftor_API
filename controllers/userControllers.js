@@ -37,15 +37,21 @@ function encryptPassword(password) {
 }
 
 //================ Contenue Transporteur ======================//
-let transporter = nodemailer.createTransport({
-  host: 'smtp.orange.fr',
-  port: 465,
-  secure: true, // true for 465, false for other ports
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASSWORD_MAIL,
-  },
-})
+let transporter;
+try {
+  transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    auth: {
+      user: process.env.EMAIL,
+      pass: process.env.PASSWORD_MAIL,
+    },
+  });
+  console.log('Transporter created successfully');
+} catch (error) {
+  console.error('Error creating transporter:', error);
+}
 
 //================ Login || Post ======================//
 exports.login = (req, res) => {
@@ -234,18 +240,47 @@ exports.deleteFavorite = async (req, res) => {
 //================ Post ======================//
 exports.register = async (req, res) => {
   try {
-    if (req.body.password === null || req.body.password === undefined || req.body.password === '') {
-      return res.status(400).json({ errors: "Le mot de passe ne peut pas être vide" });
+    // Vérifications pour le nom d'utilisateur
+    if (req.body.username && req.body.username.length > 30) {
+      return res.status(400).json({ errors: "Le nom d'utilisateur ne peut pas dépasser 30 caractères" });
     }
+    const existingUserByUsername = await userModels.findOne({ username: req.body.username });
+    if (existingUserByUsername) {
+      return res.status(400).json({ errors: "Le nom d'utilisateur est déjà utilisé" });
+    }
+
+    // Vérifications pour l'email
+    const existingUserByEmail = await userModels.findOne({ email: req.body.email });
+    if (existingUserByEmail) {
+      return res.status(400).json({ errors: "L'adresse email est déjà utilisée" });
+    }
+
+    // Vérifications pour le téléphone
+    if (req.body.phone && !isValidPhoneNumber(req.body.phone)) {
+      return res.status(400).json({ errors: "Le format du numéro de téléphone est incorrect" });
+    }
+    const existingUserByPhone = await userModels.findOne({ phone: req.body.phone });
+    if (existingUserByPhone) {
+      return res.status(400).json({ errors: "Ce numéro de téléphone est déjà pris" });
+    }
+
+    // Vérification pour le mot de passe
+    if (!req.body.password || req.body.password.length < 6 || req.body.password.length > 255) {
+      return res.status(400).json({ errors: "Le mot de passe doit avoir entre 6 et 255 caractères" });
+    }
+
+    // Chiffrement du mot de passe et sauvegarde du nouvel utilisateur
     req.body.password = encryptPassword(req.body.password);
     const newUser = new userModels(req.body);
-    await newUser.save(); // Ajoutez cet appel pour sauvegarder le nouvel utilisateur dans la base de données
-    res.status(201).json(newUser); // Répond avec le nouvel utilisateur créé
+    await newUser.save();
+    res.status(201).json(newUser);
+
   } catch (err) {
     console.log('err', err);
     res.status(500).send(err);
   }
 };
+
 
 exports.emailPasswordReset = (req, res) => {
   async function main() {
@@ -310,7 +345,6 @@ exports.emailVerify = async (req, res) => {
         console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
       }
     });
-
     const ress = await sendMailVerifyEmail(req);
     if (ress === undefined) {
       res.status(200).send("Email 'Verification de Mail' Envoyer");
@@ -440,7 +474,7 @@ async function sendMailVerifyEmail(req) {
     console.log('Email sent successfully');
   } catch (err) {
     console.error('Error while sending email:', err);
-    return res.status
+    return err.status
   }
 }
 
