@@ -7,8 +7,8 @@ const enchantSchema = Schema({
     nom: { type: String, required: true },
     identifier: { type: String, required: true },
     lvlMax: { type: Number, required: true },
-    version: [{ type: Number, ref: 'Version' }], // Tableau de Numbers pour version
-    minecraft_id: { type: String } // Ajout de la ligne minecraf_id
+    version: { type: Number, ref: 'Version' }, // Single Number for version
+    minecraft_id: { type: Number } // minecraft_id field
 });
 
 enchantSchema.pre('save', function (next) {
