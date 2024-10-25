@@ -2,6 +2,7 @@ const Item = require('../models/itemModel');
 const Enchant = require('../models/enchantModel');
 const Materiaux = require('../models/materiauxModel');
 const Version = require('../models/VersionsModel');
+const logger = require('../logger');
 
 /**
  * Get the latest 5 requests sorted by nbutilisation in descending order.
@@ -30,9 +31,11 @@ exports.getItem = async (req, res) => {
         }));
 
         res.status(200).send(populatedItems);
+        logger.info('Item information retrieved successfully.', populatedItems.id);
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
+        logger.error('Item information retrieved successfully.', err);
     }
 };
 
@@ -47,9 +50,11 @@ exports.addItem = async (req, res) => {
         const newItem = new Item(req.body);
         const savedItem = await newItem.save();
         res.status(201).send(savedItem);
+        logger.info('Item added successfully.', savedItem.id);
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
+        logger.error('Item added successfully.', err);
     }
 };
 
@@ -63,9 +68,11 @@ exports.addEnchant = async (req, res) => {
         const newEnchant = new Enchant(req.body);
         const savedEnchant = await newEnchant.save();
         res.status(201).send(savedEnchant);
+        logger.info('Enchant added successfully', savedEnchant.id);
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
+        logger.error('Enchant added successfully', err);
     }
 };
 
@@ -79,9 +86,11 @@ exports.addMateriaux = async (req, res) => {
         const newMateriaux = new Materiaux(req.body);
         const savedMateriaux = await newMateriaux.save();
         res.status(201).send(savedMateriaux);
+        logger.info('Materiaux added successfully', savedMateriaux.id);
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
+        logger.error('Materiaux added successfully', err);
     }
 };
 
@@ -90,8 +99,10 @@ exports.addVersion = async (req, res) => {
         const newVersion = new Version(req.body);
         const savedVersion = await newVersion.save();
         res.status(201).send(savedVersion);
+        logger.info('Version added successfully', savedVersion.id);
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
+        logger.error('Version added successfully', err);
     }
 };

@@ -1,4 +1,5 @@
-const requestModels = require('../models/requestModel')
+const requestModels = require('../models/requestModel');
+const logger = require('../logger');
 //================ Get ======================//
 
 /**
@@ -14,14 +15,16 @@ exports.getRequest = async (req, res) => {
       .exec((err, docs) => {
         if (!err) {
           res.status(200).send(docs);
+          logger.info('Request information retrieved successfully.', docs);
         } else {
           res.status(403);
-          console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+          logger.error('Error while finding the data', err);
         }
       });
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while retrieving the current profile.');
+    logger.error('An Error occurred while retrieving the current profile');
   }
 };
 
@@ -36,10 +39,12 @@ exports.Request = async (req, res) => {
   try {
     // Vérifier si la Command est vide
     if (req.body.Command === null || req.body.Command === undefined || req.body.Command === '') {
+      logger.warn('La Commande ne peut pas être vide');
       return res.status(400).json({ errors: "La Commande ne peut pas être vide" });
     }
     // Vérifier si la version est vide
     if (req.body.Version === null || req.body.Version === undefined || req.body.Version === '') {
+      logger.warn('La version ne peut pas être vide');
       return res.status(400).json({ errors: "La version ne peut pas être vide" });
     }
 
@@ -50,6 +55,7 @@ exports.Request = async (req, res) => {
       if (existingRequest.version.includes(req.body.Version)) {
         existingRequest.nbutilisation += 1;
         const updatedRequest = await existingRequest.save();
+        logger.info('Requête mise à jour avec succès.', updatedRequest.id);
         return res.status(200).send(updatedRequest);
       }
       const updatedRequest = await requestModels.findByIdAndUpdate(existingRequest._id, {
@@ -59,6 +65,7 @@ exports.Request = async (req, res) => {
         }
       }, { new: true });
       res.status(200).send(updatedRequest);
+      logger.info('Requête mise à jour avec succès.', updatedRequest.id);
     } else {
       // Ajouter la nouvelle requête à la liste
       const newRequest = new requestModels({
@@ -68,9 +75,11 @@ exports.Request = async (req, res) => {
       });
       const savedRequest = await newRequest.save();
       res.status(200).send(savedRequest);
+      logger.info('Requête ajoutée avec succès.', savedRequest.id);
     }
   } catch (err) {
     console.log(err.message);
     res.status(500).send('Erreur lors de l\'enregistrement de la requête Veuillez réessayer plus tard.');
+    logger.error('Erreur lors de l\'enregistrement de la requête');
   }
 };

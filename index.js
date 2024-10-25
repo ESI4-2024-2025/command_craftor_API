@@ -6,7 +6,7 @@ const cors = require('cors')
 const https = require('https')
 const http = require('http')
 const fs = require('fs')
-
+const logger = require('./logger')
 const swaggerUi = require('swagger-ui-express');
 const swaggerJSDoc = require('swagger-jsdoc');
 
@@ -72,6 +72,7 @@ if (process.env.NODE_ENV === 'development') {
     console.log('############')
     console.log('')
     console.log('=====================')
+    logger.info(`The node express DEV app is listening at http://127.0.0.1:${process.env.PORT ?? 3002}`)
   });
 } else {
   const httpsOptions = {
@@ -87,5 +88,6 @@ if (process.env.NODE_ENV === 'development') {
     console.log('############')
     console.log('')
     console.log('=====================')
+    logger.http(`The node express app is listening at http://127.0.0.1:${process.env.PORT ?? 3002}`)
   });
 }

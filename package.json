@@ -24,6 +24,7 @@
     "nodemon": "^2.0.22",
     "swagger-autogen": "^2.23.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "winston": "^3.15.0"
   }
 }

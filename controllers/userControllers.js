@@ -10,6 +10,8 @@ const { SHA256 } = require('crypto-js');
 const https = require("https");
 const fs = require('fs');
 const e = require('cors');
+const logger = require('../logger');
+const { log } = require('console');
 
 //================ Upload ======================//
 async function convertImageToBase64(filePath) {
@@ -29,10 +31,12 @@ async function convertImageToBase64(filePath) {
 function encryptPassword(password) {
   try {
     const encryptedPassword = SHA256(password + process.env.SHA_KEY).toString();
+    logger.info('Password encrypted successfully');
     return encryptedPassword;
   } catch (err) {
     console.error(err);
     throw new Error('An error occurred while encrypting the password.');
+    logger.error('An error occurred while encrypting the password.');
   }
 }
 
@@ -49,8 +53,10 @@ try {
     },
   });
   console.log('Transporter created successfully');
+  logger.info('Transporter created successfully');
 } catch (error) {
   console.error('Error creating transporter:', error);
+  logger.error('Error creating transporter:', error);
 }
 
 //================ Login || Post ======================//
@@ -58,6 +64,7 @@ exports.login = (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.warn('Validation error:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
     const email = req.body.email;
@@ -78,19 +85,21 @@ exports.login = (req, res) => {
                   }
           } */
           res.status(200).send({ accessToken });
+          logger.info('Login successful');
         } else {
           res.status(400).send('Votre email ou mot de passe est incorrect');
+          logger.warn('Email or password is incorrect');
         }
       } else {
-        console.log(
-          'Error while finding the data' + JSON.stringify(err, undefined, 2)
-        );
+        console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
         res.status(500).send(err);
+        logger.error('Error while finding the data:', err);
       }
     });
   } catch (err) {
     console.error(err);
     res.status(500).send(err);
+    logger.error('An error occurred while logging in:', err);
   }
 };
 
@@ -99,6 +108,7 @@ exports.logout = (req, res) => {
   // La déconnexion est gérée par le frontend : oubli du token.
 
   res.send('Logout successful')
+  logger.info('Logout successful')
 }
 
 //================ Get ======================//
@@ -106,11 +116,13 @@ exports.getCurrentProfile = async (req, res) => {
   try {
     const token = req.headers['x-access-token'];
     if (!token) {
+      logger.warn('Access token is missing');
       return res.status(401).send('Access token is missing');
     }
 
     jwt.verify(token, accessTokenSecret, (err, decoded) => {
       if (err) {
+        logger.warn('Invalid access token');
         return res.status(401).send('Invalid access token');
       }
 
@@ -118,19 +130,23 @@ exports.getCurrentProfile = async (req, res) => {
       userModels.findOne({ email: email }, (err, docs) => {
         if (err) {
           res.status(500).send('An error occurred while retrieving the current profile.');
-          console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+          // console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+          logger.error('Error while finding the data:', err);
         } else if (!docs) {
           res.status(404).send('User not found.');
-          console.log('User not found for email: ' + email);
+          // console.log('User not found for email: ' + email);
+          logger.warn('User not found for email:', email);
         } else {
           docs.password = undefined;
           res.status(200).send(docs);
+          logger.info('Current profile retrieved successfully');
         }
       });
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while retrieving the current profile.');
+    logger.error('An Error occurred while retrieving the current profile');
   }
 };
 
@@ -139,16 +155,16 @@ exports.getAllUsers = async (req, res) => {
   try {
     const users = await userModels.find();
     res.status(200).send(users);
+    logger.info('All users retrieved successfully');
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while retrieving all users.');
+    logger.error('An error occurred while retrieving all users:', err);
   }
 };
 
 exports.emailValidationUpdate = (req, res) => {
   try {
-    console.log(req.params.token);
-
     userModels.find({ token: req.params.token }, (err, Info) => {
       if (!err) {
         if (Info.length > 0) {
@@ -158,30 +174,36 @@ exports.emailValidationUpdate = (req, res) => {
           if (Info[0].email_verified) {
             console.log('Email is already verified. Redirecting...');
             res.redirect(process.env.PAGE_REDIRECTION + '/profile'); // Redirige sans rien faire d'autre
+            logger.info('Email is already verified. Redirecting...');
           } else {
             // Mettre à jour email_verified
             userModels.findByIdAndUpdate(id, { $set: { email_verified: true } }, { new: false }, (err, docs) => {
               if (!err) {
                 console.log('Email verification updated:', docs);
                 res.redirect(process.env.PAGE_REDIRECTION + '/profile');
+                logger.info('Email verification updated:', docs);
               } else {
                 console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
                 res.status(500).send('An error occurred while updating email validation.');
+                logger.error('Error while updating the data:', err);
               }
             });
           }
         } else {
           console.log('No user found with the provided token.');
           res.status(404).send('User not found.');
+          logger.warn('No user found with the provided token.');
         }
       } else {
         console.log('Error while finding the data', JSON.stringify(err, undefined, 2));
         res.status(500).send('An error occurred while updating email validation.');
+        logger.error('Error while finding the data:', err);
       }
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while updating email validation.');
+    logger.error('An error occurred while updating email validation:', err);
   }
 };
 
@@ -192,6 +214,7 @@ exports.deleteUser = (req, res) => {
     const id = req.body._id;
 
     if (!ObjectID.isValid(id)) {
+      logger.warn('No record with given id:', id);
       return res.status(400).send(`No record with given id: ${id}`);
     }
 
@@ -203,13 +226,16 @@ exports.deleteUser = (req, res) => {
           status: 200,
         };
         res.status(200).send(result);
+        logger.info('Post has been removed successfully:', docs);
       } else {
         res.status(500).send(err);
+        logger.error('Error while deleting the post:', err);
       }
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while deleting the post.');
+    logger.error('An error occurred while deleting the post:', err);
   }
 };
 
@@ -219,6 +245,7 @@ exports.deleteFavorite = async (req, res) => {
     const favorite = req.body.favorite;
 
     if (!ObjectID.isValid(id)) {
+      logger.warn('No record with given id:', id);
       return res.status(400).send(`No record with given id: ${id}`);
     }
 
@@ -226,14 +253,17 @@ exports.deleteFavorite = async (req, res) => {
     userModels.findByIdAndUpdate(id, { $pull: { favoris: favoriteId } }, { new: true }, (err, docs) => {
       if (!err) {
         res.status(200).send(docs);
+        logger.info('Favorite removed successfully:', docs);
       } else {
-        console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
+        // console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
         res.status(500).send('An error occurred while adding the favorite.');
+        logger.error('Error while updating the data:', err);
       }
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while adding the favorite.');
+    logger.error('An error occurred while adding the favorite:', err);
   }
 };
 
@@ -242,30 +272,36 @@ exports.register = async (req, res) => {
   try {
     // Vérifications pour le nom d'utilisateur
     if (req.body.username && req.body.username.length > 30) {
+      logger.warn('Le nom d\'utilisateur ne peut pas dépasser 30 caractères');
       return res.status(400).json({ errors: "Le nom d'utilisateur ne peut pas dépasser 30 caractères" });
     }
     const existingUserByUsername = await userModels.findOne({ username: req.body.username });
     if (existingUserByUsername) {
+      logger.warn('Le nom d\'utilisateur est déjà utilisé');
       return res.status(400).json({ errors: "Le nom d'utilisateur est déjà utilisé" });
     }
 
     // Vérifications pour l'email
     const existingUserByEmail = await userModels.findOne({ email: req.body.email });
     if (existingUserByEmail) {
+      logger.warn('L\'adresse email est déjà utilisée');
       return res.status(400).json({ errors: "L'adresse email est déjà utilisée" });
     }
 
     // Vérifications pour le téléphone
     if (req.body.phone && !isValidPhoneNumber(req.body.phone)) {
+      logger.warn('Le format du numéro de téléphone est incorrect');
       return res.status(400).json({ errors: "Le format du numéro de téléphone est incorrect" });
     }
     const existingUserByPhone = await userModels.findOne({ phone: req.body.phone });
     if (existingUserByPhone) {
+      logger.warn('Ce numéro de téléphone est déjà pris');
       return res.status(400).json({ errors: "Ce numéro de téléphone est déjà pris" });
     }
 
     // Vérification pour le mot de passe
     if (!req.body.password || req.body.password.length < 6 || req.body.password.length > 255) {
+      logger.warn('Le mot de passe doit avoir entre 6 et 255 caractères');
       return res.status(400).json({ errors: "Le mot de passe doit avoir entre 6 et 255 caractères" });
     }
 
@@ -274,10 +310,12 @@ exports.register = async (req, res) => {
     const newUser = new userModels(req.body);
     await newUser.save();
     res.status(201).json(newUser);
+    logger.info('Utilisateur enregistré avec succès', newUser.id);
 
   } catch (err) {
     console.log('err', err);
     res.status(500).send(err);
+    logger.error('An error occurred while registering the user:', err);
   }
 };
 
@@ -293,18 +331,22 @@ exports.emailPasswordReset = (req, res) => {
           const ress = await sendMailPasswordReset(req);
           if (ress === undefined) {
             res.status(200).send("Email 'Reset de Mots de Passe' Envoyer");
+            logger.info('Email sent successfully');
           }
           else {
             res.status(500).send('An error occurred while sending email.');
+            logger.error('An error occurred while sending email.');
           }
         } else {
-          console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+          // console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
           res.status(500).send(err);
+          logger.error('Error while finding the data:', err);
         }
       });
     } catch (err) {
       console.error(err);
       res.status(500).send(err);
+      logger.error('An error occurred while sending email:', err);
     }
   }
 
@@ -318,6 +360,7 @@ exports.addFavorite = async (req, res) => {
     const favorite = req.body.favorite;
 
     if (!ObjectID.isValid(id)) {
+      logger.warn('No record with given id:', id);
       return res.status(400).send(`No record with given id: ${id}`);
     }
 
@@ -325,14 +368,17 @@ exports.addFavorite = async (req, res) => {
     userModels.findByIdAndUpdate(id, { $push: { favoris: favoriteId } }, { new: true }, (err, docs) => {
       if (!err) {
         res.status(200).send(docs);
+        logger.info('Favorite added successfully:', docs);
       } else {
-        console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
+        // console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
         res.status(500).send('An error occurred while adding the favorite.');
+        logger.error('Error while updating the data:', err);
       }
     });
   } catch (err) {
     console.error(err);
     res.status(500).send('An error occurred while adding the favorite.');
+    logger.error('An error occurred while adding the favorite:', err);
   }
 };
 
@@ -341,20 +387,25 @@ exports.emailVerify = async (req, res) => {
     userModels.find({ email: req.body.email }, (err, docs) => {
       if (!err) {
         console.log("Email Found : " + req.body.email);
+        logger.info('Email found:', req.body.email);
       } else {
         console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
+        logger.error('Error while finding the data:', err);
       }
     });
     const ress = await sendMailVerifyEmail(req);
     if (ress === undefined) {
       res.status(200).send("Email 'Verification de Mail' Envoyer");
+      logger.info('Email sent successfully');
     }
     else {
       res.status(500).send('An error occurred while sending email.');
+      logger.error('An error occurred while sending email.');
     }
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send(err);
+    logger.error('An error occurred while sending email:', err);
   }
 };
 
@@ -376,13 +427,16 @@ exports.passwordModify = async (req, res) => {
     const ress = await sendMailpasswordModify(userEmail);
     if (ress === undefined) {
       res.status(200).send("Email 'Modification de Mots de Passe' Envoyé");
+      logger.info('Email sent successfully');
     }
     else {
       res.status(500).send('An error occurred while sending email.');
+      logger.error('An error occurred while sending email.');
     }
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send(err);
+    logger.error('An error occurred while sending email:', err);
   }
 };
 
@@ -390,6 +444,7 @@ exports.profileUpdate = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.warn('Validation error:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
@@ -408,15 +463,18 @@ exports.profileUpdate = async (req, res) => {
       });
     })
     if (id === null) {
+      logger.warn('Something is missing in the request');
       return res.status(400).send('Something is missing in the request');
     }
 
     const updatedUser = await userModels.findByIdAndUpdate(id, { $set: req.body }, { new: true });
-    console.log(updatedUser);
+    // console.log(updatedUser);
     res.status(200).send(updatedUser);
+    logger.info('Profile updated successfully:', updatedUser);
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).send(err);
+    logger.error('An error occurred while updating the profile:', err);
   }
 };
 
@@ -439,9 +497,11 @@ async function sendMailPasswordReset(req) {
     <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce mail.</p>` // Contenu HTML de l'e-mail
     });
 
-    console.log('Email sent successfully');
+    // console.log('Email sent successfully');
+    logger.info('Email sent successfully');
   } catch (err) {
-    console.error('Error while sending email:', err);
+    // console.error('Error while sending email:', err);
+    logger.error('Error while sending email:', err);
   }
 }
 
@@ -471,9 +531,11 @@ async function sendMailVerifyEmail(req) {
     });
     //  <img src="data:image/png;base64,${bs64}" alt="Signature" style="display: block; margin-top: 20px;">,
     //En attente de recevoir un lien
-    console.log('Email sent successfully');
+    // console.log('Email sent successfully');
+    logger.info('Email sent successfully');
   } catch (err) {
-    console.error('Error while sending email:', err);
+    // console.error('Error while sending email:', err);
+    logger.error('Error while sending email:', err);
     return err.status
   }
 }
@@ -489,9 +551,11 @@ async function sendMailpasswordModify(userEmail) {
         '<h2>Modification de Mots de passe</h2><p>Votre mot de passe a été modifié.</p>', // Contenu HTML de l'e-mail
     });
 
-    console.log('Email sent successfully');
+    // console.log('Email sent successfully');
+    logger.info('Email sent successfully');
   } catch (err) {
-    console.error('Error while sending email:', err);
+    // console.error('Error while sending email:', err);
+    logger.error('Error while sending email:', err);
   }
 }
 

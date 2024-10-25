@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const blocModels = require('../models/blocModel');
 
 /**
@@ -8,10 +9,11 @@ const blocModels = require('../models/blocModel');
 exports.getBloc = async (req, res) => {
     try {
         const docs = await blocModels.find();
-
         res.status(200).send(docs);
+        logger.info('Bloc information retrieved successfully.');
     } catch (err) {
         console.error(err);
         res.status(500).send('An error occurred while retrieving the current profile.');
+        logger.error('Bloc information retrieved successfully.');
     }
 };

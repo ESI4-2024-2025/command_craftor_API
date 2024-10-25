@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const potionModels = require('../models/potionModel');
 
 /**
@@ -8,10 +9,11 @@ const potionModels = require('../models/potionModel');
 exports.getPotion = async (req, res) => {
     try {
         const docs = await potionModels.find();
-
         res.status(200).send(docs);
+        logger.info('Potion information retrieved successfully.');
     } catch (err) {
         console.error(err);
         res.status(500).send('An error occurred while retrieving the current profile.');
+        logger.error('Potion information retrieved successfully.');
     }
 };
