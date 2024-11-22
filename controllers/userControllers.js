@@ -288,17 +288,6 @@ exports.register = async (req, res) => {
       return res.status(400).json({ errors: "L'adresse email est déjà utilisée" });
     }
 
-    // Vérifications pour le téléphone
-    if (req.body.phone && !isValidPhoneNumber(req.body.phone)) {
-      logger.warn('Le format du numéro de téléphone est incorrect');
-      return res.status(400).json({ errors: "Le format du numéro de téléphone est incorrect" });
-    }
-    const existingUserByPhone = await userModels.findOne({ phone: req.body.phone });
-    if (existingUserByPhone) {
-      logger.warn('Ce numéro de téléphone est déjà pris');
-      return res.status(400).json({ errors: "Ce numéro de téléphone est déjà pris" });
-    }
-
     // Vérification pour le mot de passe
     if (!req.body.password || req.body.password.length < 6 || req.body.password.length > 255) {
       logger.warn('Le mot de passe doit avoir entre 6 et 255 caractères');
