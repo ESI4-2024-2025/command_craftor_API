@@ -7,6 +7,7 @@ mongoose.set('strictQuery', true);
 mongoose.connect(mongoDB, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  dbName: process.env.MONGO_NAME
 })
 
 // Get the default connection
