@@ -50,21 +50,6 @@ module.exports = function (app) {
                 return Promise.resolve();
             });
         }),
-        body('phone').custom((value) => {
-            // Check if the phone number is in a valid format
-            if (value === '' || value === undefined || value === null) return Promise.resolve();
-            if (!isValidPhoneNumber(value)) {
-                return Promise.reject('Le format du numéro de téléphone est incorrect');
-            }
-
-            // Check if the phone number is unique in the database
-            return userModel.findOne({ phone: value }).then((user) => {
-                if (user) {
-                    return Promise.reject('Ce numéro de téléphone est déjà utilisé par un autre utilisateur');
-                }
-                return Promise.resolve();
-            });
-        }),
         body('password').isLength({ max: 255 })
     ], User.profileUpdate) //Besoin Token
     app.put('/users/email/password-modify', [body('password').isLength({ max: 255 })], User.passwordModify) //Ok
@@ -78,12 +63,6 @@ module.exports = function (app) {
     app.delete('/users/deleteUser', /*[authJwt.verifyToken],*/ User.deleteUser) //OK
     //Token
     app.put('/verify-token', [authJwt.verifyToken]) //A Tester PLUS TARD // Besoin du Front
-}
-
-function isValidPhoneNumber(phoneNumber) {
-    // Vérifier si le numéro de téléphone est valide
-    const phoneRegex = /^\+?1?(\d{10,12}$)/;
-    return phoneRegex.test(phoneNumber);
 }
 
 // Header Swagger
@@ -106,9 +85,6 @@ function isValidPhoneNumber(phoneNumber) {
 *          type: string
 *          format: email
 *          description: L'adresse email de l'utilisateur.
-*        phone:
-*          type: string
-*          description: Le numéro de téléphone de l'utilisateur.
 *        password:
 *          type: string
 *          description: Le mot de passe de l'utilisateur.
@@ -225,14 +201,11 @@ function isValidPhoneNumber(phoneNumber) {
  *                 maxLength: 30
  *               email:
  *                 type: string
- *               phone:
- *                 type: string
  *               password:
  *                 type: string
  *             required:
  *               - username
  *               - email
- *               - phone
  *               - password
  *     responses:
  *       '200':
@@ -292,8 +265,6 @@ function isValidPhoneNumber(phoneNumber) {
  *                 type: string
  *                 maxLength: 30
  *               email:
- *                 type: string
- *               phone:
  *                 type: string
  *               password:
  *                 type: string

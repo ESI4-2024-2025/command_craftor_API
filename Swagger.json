@@ -6,6 +6,69 @@
     "description": "Documentation de l'API de l'application CommandCraftor une application de gestion de commandes Minecraft.\n\n Le Model des 'Utilisateurs' est de 'Request' sont disponible en bas de la page \n\n **ATTENTION** : Cette documentation est générée automatiquement à partir des annotations Swagger dans le code. \n\n Pour plus d'informations sur les routes disponibles, veuillez consulter le code source de l'application."
   },
   "paths": {
+    "/getBloc": {
+      "get": {
+        "tags": [
+          "Bloc"
+        ],
+        "summary": "Get bloc information",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bloc"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getItem": {
+      "get": {
+        "tags": [
+          "Item"
+        ],
+        "summary": "Get all items",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Item"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getPotion": {
+      "get": {
+        "tags": [
+          "Potion"
+        ],
+        "summary": "Get potion information",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Potion"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/getRequest": {
       "get": {
         "tags": [
@@ -191,9 +254,6 @@
                   "email": {
                     "type": "string"
                   },
-                  "phone": {
-                    "type": "string"
-                  },
                   "password": {
                     "type": "string"
                   }
@@ -201,7 +261,6 @@
                 "required": [
                   "username",
                   "email",
-                  "phone",
                   "password"
                 ]
               }
@@ -279,9 +338,6 @@
                     "maxLength": 30
                   },
                   "email": {
-                    "type": "string"
-                  },
-                  "phone": {
                     "type": "string"
                   },
                   "password": {
@@ -434,6 +490,58 @@
   },
   "components": {
     "schemas": {
+      "Bloc": {
+        "type": "object",
+        "properties": {
+          "nom": {
+            "type": "string",
+            "example": "Pierre"
+          }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "Nom": {
+            "type": "string",
+            "example": "Sword"
+          },
+          "identifier": {
+            "type": "string",
+            "example": "sword"
+          },
+          "enchantement": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "materiaux": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "example": [
+              1,
+              2
+            ]
+          }
+        }
+      },
+      "Potion": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Healing Potion"
+          }
+        }
+      },
       "Request": {
         "type": "object",
         "properties": {
@@ -475,10 +583,6 @@
             "format": "email",
             "description": "L'adresse email de l'utilisateur."
           },
-          "phone": {
-            "type": "string",
-            "description": "Le numéro de téléphone de l'utilisateur."
-          },
           "password": {
             "type": "string",
             "description": "Le mot de passe de l'utilisateur."
@@ -499,6 +603,18 @@
     }
   },
   "tags": [
+    {
+      "name": "Bloc",
+      "description": "Opérations liées aux Blocs"
+    },
+    {
+      "name": "Item",
+      "description": "Opérations liées aux Items"
+    },
+    {
+      "name": "Potion",
+      "description": "Operations related to Potions"
+    },
     {
       "name": "Requete",
       "description": "Opérations liées aux commande"
