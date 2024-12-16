@@ -165,7 +165,6 @@ exports.getAllUsers = async (req, res) => {
 
 exports.emailValidationUpdate = (req, res) => {
   try {
-    console.log(req.params);
     userModels.find({ token: req.params.token }, (err, Info) => {
       if (!err) {
         if (Info.length > 0) {
@@ -397,7 +396,6 @@ exports.passwordModify = async (req, res) => {
   try {
     const id = req.body.userId;
     const newPassword = req.body.password; // Le nouveau mot de passe en texte brut
-    console.log(newPassword)
     // Mettre à jour le mot de passe dans la base de données
     await userModels.findByIdAndUpdate(id, { password: encryptPassword(newPassword) });
 
