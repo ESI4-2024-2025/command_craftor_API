@@ -35,8 +35,8 @@ function encryptPassword(password) {
     return encryptedPassword;
   } catch (err) {
     console.error(err);
-    throw new Error('An error occurred while encrypting the password.');
     logger.error('An error occurred while encrypting the password.');
+    throw new Error('An error occurred while encrypting the password.');
   }
 }
 
@@ -44,7 +44,7 @@ function encryptPassword(password) {
 let transporter;
 try {
   transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
+    host: 'smtp.hostinger.com',
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
