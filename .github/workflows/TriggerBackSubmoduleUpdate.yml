@@ -1,0 +1,21 @@
+name: trigger back submodule update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger_back_workflow:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: trigger back submodule update
+        env:
+          ORG_TOKEN: ${{ secrets.ORG_TOKEN }}
+        run: |
+          curl -v -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $ORG_TOKEN" \
+            https://api.github.com/repos/ESI4-2024-2025/Command-Craftor-Main/actions/workflows/update-submodule-back.yml/dispatches \
+            -d '{"ref":"main"}'
