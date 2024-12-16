@@ -165,6 +165,7 @@ exports.getAllUsers = async (req, res) => {
 
 exports.emailValidationUpdate = (req, res) => {
   try {
+    console.log(req.params);
     userModels.find({ token: req.params.token }, (err, Info) => {
       if (!err) {
         if (Info.length > 0) {
@@ -172,36 +173,29 @@ exports.emailValidationUpdate = (req, res) => {
 
           // Vérification si email_verified est déjà true
           if (Info[0].email_verified) {
-            console.log('Email is already verified. Redirecting...');
-            res.redirect(process.env.PAGE_REDIRECTION + '/profile'); // Redirige sans rien faire d'autre
-            logger.info('Email is already verified. Redirecting...');
+            console.log('Email is already verified...');
+            logger.info('Email is already verified...');
           } else {
             // Mettre à jour email_verified
-            userModels.findByIdAndUpdate(id, { $set: { email_verified: true } }, { new: false }, (err, docs) => {
+            userModels.findByIdAndUpdate(id, { $set: { email_verified: true } }, (err, docs) => {
               if (!err) {
-                console.log('Email verification updated:', docs);
-                res.redirect(process.env.PAGE_REDIRECTION + '/profile');
                 logger.info('Email verification updated:', docs);
               } else {
-                console.log('Error while updating the data', JSON.stringify(err, undefined, 2));
                 res.status(500).send('An error occurred while updating email validation.');
                 logger.error('Error while updating the data:', err);
               }
             });
           }
         } else {
-          console.log('No user found with the provided token.');
           res.status(404).send('User not found.');
           logger.warn('No user found with the provided token.');
         }
       } else {
-        console.log('Error while finding the data', JSON.stringify(err, undefined, 2));
         res.status(500).send('An error occurred while updating email validation.');
         logger.error('Error while finding the data:', err);
       }
     });
   } catch (err) {
-    console.error(err);
     res.status(500).send('An error occurred while updating email validation.');
     logger.error('An error occurred while updating email validation:', err);
   }
@@ -373,16 +367,17 @@ exports.addFavorite = async (req, res) => {
 
 exports.emailVerify = async (req, res) => {
   try {
-    userModels.find({ email: req.body.email }, (err, docs) => {
-      if (!err) {
-        console.log("Email Found : " + req.body.email);
-        logger.info('Email found:', req.body.email);
-      } else {
-        console.log('Error while finding the data' + JSON.stringify(err, undefined, 2));
-        logger.error('Error while finding the data:', err);
-      }
-    });
-    const ress = await sendMailVerifyEmail(req);
+    const user = await userModels.findOne({ email: req.body.email });
+    if (user) {
+      console.log("Email Found : " + req.body.email);
+      logger.info('Email found:', req.body.email);
+      req.body.id = user._id; // Récupérer l'ID de l'utilisateur
+    } else {
+      console.log('No user found with the provided email.');
+      logger.warn('No user found with the provided email:', req.body.email);
+      return res.status(404).send('User not found.');
+    }
+    const ress = await sendMailVerifyEmail(user);
     if (ress === undefined) {
       res.status(200).send("Email 'Verification de Mail' Envoyer");
       logger.info('Email sent successfully');
@@ -402,7 +397,7 @@ exports.passwordModify = async (req, res) => {
   try {
     const id = req.body.userId;
     const newPassword = req.body.password; // Le nouveau mot de passe en texte brut
-
+    console.log(newPassword)
     // Mettre à jour le mot de passe dans la base de données
     await userModels.findByIdAndUpdate(id, { password: encryptPassword(newPassword) });
 
@@ -414,6 +409,7 @@ exports.passwordModify = async (req, res) => {
 
     // Envoyer le courriel de confirmation avec le nouvel e-mail
     const ress = await sendMailpasswordModify(userEmail);
+
     if (ress === undefined) {
       res.status(200).send("Email 'Modification de Mots de Passe' Envoyé");
       logger.info('Email sent successfully');
@@ -494,13 +490,10 @@ async function sendMailPasswordReset(req) {
   }
 }
 
-async function sendMailVerifyEmail(req) {
+async function sendMailVerifyEmail(user) {
   try {
-    // const imagePath = './img/logo.png';
-    // const bs64 = await convertImageToBase64(imagePath);
-    // console.log(bs64)
-
-    const url = process.env.LINK_FRONT + '/users/email/validationupdate/:email=' + req.body.email;
+    const userId = user._id.toString();
+    const url = process.env.LINK_FRONT + '/users/email/validationupdate/?' + userId;
     await transporter.sendMail({
       from: `"Command Craftor" <${process.env.EMAIL}>`,
       to: req.body.email,
@@ -518,9 +511,7 @@ async function sendMailVerifyEmail(req) {
          Cordialement,
          <br>Si vous n'avez pas demandé à recevoir cet e-mail, vous pouvez l'ignorer.</p>` // Contenu HTML de l'e-mail
     });
-    //  <img src="data:image/png;base64,${bs64}" alt="Signature" style="display: block; margin-top: 20px;">,
-    //En attente de recevoir un lien
-    // console.log('Email sent successfully');
+    console.log('Email sent successfully');
     logger.info('Email sent successfully');
   } catch (err) {
     // console.error('Error while sending email:', err);
