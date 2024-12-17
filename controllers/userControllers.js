@@ -292,7 +292,7 @@ exports.register = async (req, res) => {
     const newUser = new userModels(req.body);
     await newUser.save();
     res.status(201).json(newUser);
-    logger.info('Utilisateur enregistré avec succès', newUser.id);
+    logger.info('Utilisateur enregistré avec succès', newUser._id);
 
   } catch (err) {
     console.log('err', err);
@@ -376,15 +376,9 @@ exports.emailVerify = async (req, res) => {
       logger.warn('No user found with the provided email:', req.body.email);
       return res.status(404).send('User not found.');
     }
-    const ress = await sendMailVerifyEmail(user);
-    if (ress === undefined) {
-      res.status(200).send("Email 'Verification de Mail' Envoyer");
-      logger.info('Email sent successfully');
-    }
-    else {
-      res.status(500).send('An error occurred while sending email.');
-      logger.error('An error occurred while sending email.');
-    }
+    await sendMailVerifyEmail(user);
+    res.status(200).send("Email 'Verification de Mail' Envoyer");
+    logger.info('Email sent successfully');
   } catch (err) {
     // console.error(err);
     res.status(500).send(err);
