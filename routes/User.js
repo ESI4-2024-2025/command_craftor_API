@@ -18,6 +18,7 @@ module.exports = function (app) {
         body('email').isEmail().isLength({ max: 255 }),
         body('password').isLength({ max: 255 })
     ], User.login) //OK
+    app.post('/users/validateidentity', User.validateIdentity)
     //Get
     app.get('/users', User.getAllUsers)    //OK
     app.put('/users/current', [authJwt.verifyToken], User.getCurrentProfile) //OK
@@ -134,6 +135,68 @@ module.exports = function (app) {
  *         description: Erreur serveur interne
  */
 
+/**
+ * @swagger
+ * /users/validateidentity:
+ *   post:
+ *     summary: Valider l'identité de l'utilisateur.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Le jeton d'accès de l'utilisateur.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Identité validée avec succès
+ *       '500':
+ *         description: Erreur serveur interne
+ */
+
+/**
+ * @swagger
+ * /users/email/password-modify:
+ *   put:
+ *     tags: [Users/Email]
+ *     summary: Modifier le mot de passe de l'utilisateur.
+ *     parameters:
+ *       - in: header
+ *         name: x-access-token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Le jeton d'accès de l'utilisateur.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 maxLength: 255
+ *             required:
+ *               - password
+ *     responses:
+ *       '200':
+ *         description: Mot de passe modifié avec succès
+ *       '400':
+ *         description: Requête invalide
+ *       '500':
+ *         description: Erreur serveur interne
+ */
 /**
  * @swagger
  * /users/email/validationupdate/{email}:

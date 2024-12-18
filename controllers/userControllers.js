@@ -111,6 +111,44 @@ exports.logout = (req, res) => {
   logger.info('Logout successful')
 }
 
+exports.validateIdentity = async (req, res) => {
+  try {
+    const token = req.headers['x-access-token'];
+    const password = req.body.password;
+
+    if (!token || !password) {
+      logger.warn('Token or password is missing');
+      return res.status(400).send('Token or password is missing');
+    }
+
+    jwt.verify(token, accessTokenSecret, async (err, decoded) => {
+      if (err) {
+        logger.warn('Invalid access token');
+        return res.status(401).send('Invalid access token');
+      }
+
+      const user = await userModels.findById(decoded.userid);
+      if (!user) {
+        logger.warn('User not found');
+        return res.status(404).send('User not found');
+      }
+
+      const encryptedPassword = encryptPassword(password);
+      if (user.password !== encryptedPassword) {
+        logger.warn('Invalid password');
+        return res.status(401).send('Invalid password');
+      }
+
+      res.status(200).send('Identity validated successfully');
+      logger.info('Identity validated successfully');
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('An error occurred while validating identity');
+    logger.error('An error occurred while validating identity:', err);
+  }
+};
+
 //================ Get ======================//
 exports.getCurrentProfile = async (req, res) => {
   try {
@@ -400,30 +438,40 @@ exports.emailVerify = async (req, res) => {
 
 exports.passwordModify = async (req, res) => {
   try {
-    const id = req.body.userId;
+    const token = req.headers['x-access-token'];
     const newPassword = req.body.password; // Le nouveau mot de passe en texte brut
 
-    // Mettre à jour le mot de passe dans la base de données
-    await userModels.findByIdAndUpdate(id, { password: encryptPassword(newPassword) });
-
-    // Récupérer l'e-mail associé à cet utilisateur
-    const user = await userModels.findById(id);
-    // console.log(user)
-
-    const userEmail = user.email;
-
-    // Envoyer le courriel de confirmation avec le nouvel e-mail
-    const ress = await sendMailpasswordModify(userEmail);
-    if (ress === undefined) {
-      res.status(200).send("Email 'Modification de Mots de Passe' Envoyé");
-      logger.info('Email sent successfully');
+    if (!token || !newPassword) {
+      logger.warn('Token or new password is missing');
+      return res.status(400).send('Token or new password is missing');
     }
-    else {
-      res.status(500).send('An error occurred while sending email.');
-      logger.error('An error occurred while sending email.');
-    }
+
+    jwt.verify(token, accessTokenSecret, async (err, decoded) => {
+      if (err) {
+        logger.warn('Invalid access token');
+        return res.status(401).send('Invalid access token');
+      }
+
+      const id = decoded.userid;
+
+      // Mettre à jour le mot de passe dans la base de données
+      await userModels.findByIdAndUpdate(id, { password: encryptPassword(newPassword) });
+
+      // Récupérer l'e-mail associé à cet utilisateur
+      const user = await userModels.findById(id);
+      const userEmail = user.email;
+
+      // Envoyer le courriel de confirmation avec le nouvel e-mail
+      const ress = await sendMailpasswordModify(userEmail);
+      if (ress === undefined) {
+        res.status(200).send("Email 'Modification de Mots de Passe' Envoyé");
+        logger.info('Email sent successfully');
+      } else {
+        res.status(500).send('An error occurred while sending email.');
+        logger.error('An error occurred while sending email.');
+      }
+    });
   } catch (err) {
-    // console.error(err);
     res.status(500).send(err);
     logger.error('An error occurred while sending email:', err);
   }
@@ -437,31 +485,49 @@ exports.profileUpdate = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    if (req.body.password) {
-      req.body.password = encryptPassword(req.body.password);
-    }
-
     let token = req.headers["x-access-token"] ?? '';
     const id = await new Promise((res, rej) => {
       jwt.verify(token, accessTokenSecret, (err, decoded) => {
         if (err) {
-          rej(err)
-          res.status(500).send('Erreur')
+          rej(err);
+          res.status(500).send('Erreur');
         }
-        res(decoded?.userid)
+        res(decoded?.userid);
       });
-    })
+    });
     if (id === null) {
       logger.warn('Something is missing in the request');
       return res.status(400).send('Something is missing in the request');
     }
 
+    const user = await userModels.findById(id);
+    if (!user) {
+      logger.warn('User not found');
+      return res.status(404).send('User not found');
+    }
+
+    if (req.body.username && Object.keys(req.body).length === 1) {
+      const existingUserByUsername = await userModels.findOne({ username: req.body.username });
+      if (existingUserByUsername) {
+        logger.warn('Le nom d\'utilisateur est déjà utilisé');
+        return res.status(400).json({ errors: "Le nom d'utilisateur est déjà utilisé" });
+      }
+      user.username = req.body.username;
+      await user.save();
+      res.status(200).send(user);
+      logger.info('Username updated successfully:', user);
+      return;
+    }
+
+    if (req.body.email && req.body.email !== user.email) {
+      req.body.email_verified = false;
+      await sendMailVerifyEmail(req);
+    }
+
     const updatedUser = await userModels.findByIdAndUpdate(id, { $set: req.body }, { new: true });
-    // console.log(updatedUser);
     res.status(200).send(updatedUser);
     logger.info('Profile updated successfully:', updatedUser);
   } catch (err) {
-    // console.error(err);
     res.status(500).send(err);
     logger.error('An error occurred while updating the profile:', err);
   }
