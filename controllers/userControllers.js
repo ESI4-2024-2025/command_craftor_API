@@ -12,6 +12,9 @@ const fs = require('fs');
 const e = require('cors');
 const logger = require('../logger');
 const { log } = require('console');
+const passwordReset = require('../template/mail/passwordReset.js');
+const passwordModify = require('../template/mail/passwordModify.js');
+const verifyEmail = require('../template/mail/verifyMail.js');
 
 //================ Upload ======================//
 async function convertImageToBase64(filePath) {
@@ -310,6 +313,7 @@ exports.emailPasswordReset = (req, res) => {
           console.log("Email Found : " + req.body.email);
           // console.log(docs[0])
           req.userId = docs[0]._id
+          req.pseudo = docs[0].username
           const ress = await sendMailPasswordReset(req);
           if (ress === undefined) {
             res.status(200).send("Email 'Reset de Mots de Passe' Envoyer");
@@ -376,7 +380,7 @@ exports.emailVerify = async (req, res) => {
       logger.warn('No user found with the provided email:', req.body.email);
       return res.status(404).send('User not found.');
     }
-    await sendMailVerifyEmail(user);
+    await sendMailVerifyEmail(req);
     res.status(200).send("Email 'Verification de Mail' Envoyer");
     logger.info('Email sent successfully');
   } catch (err) {
@@ -458,20 +462,26 @@ exports.profileUpdate = async (req, res) => {
 //================ Contenu des Mails ======================//
 async function sendMailPasswordReset(req) {
   try {
+    let updatedPasswordReset; 
+    const passwordResetString = String(passwordReset); // Conversion en chaîne
+    
+    const user = req.pseudo;
+    const link = process.env.LINK_FRONT + '/modify-password?id=' + req.userId;
+
+    if (typeof passwordResetString !== "string") {
+      console.error("Erreur : passwordReset n'est pas une chaîne !");
+  }
+      updatedPasswordReset = passwordResetString
+        .replace(/{{user}}/g, user)
+        .replace(/{{link}}/g, link);
+
+    
     await transporter.sendMail({
       from: `"Command Craftor" <${process.env.EMAIL}>`, // Adresse e-mail de l'expéditeur
       to: req.body.email, // Adresse e-mail du destinataire
-      subject: 'Réinitialisation de votre mot de passe - Command Craftor', // Sujet de l'e-mail
-      html:
-        `<h2>Réinitialisation de votre mot de passe</h2>
-    <p>Suite à votre demande de réinitialisation de mot de passe, veuillez suivre les instructions ci-dessous.</p>
-    <p>Appuyez sur le bouton ci-dessous pour changer votre mot de passe :</p>
-    <a href="${process.env.LINK_FRONT + '/modify-password/' + req.userId}">
-      <button class="reset_password_button" style="width: 150px; padding: 10px; margin-left: 10px; font-size: 12px; text-transform: uppercase; position: relative; border-radius: 90px; border: 2px solid #F85242; background: #F85242; color: #FFFFFF; cursor: pointer; font-family: 'Insomnia', sans-serif; overflow: hidden; z-index: 1;">Changer de mot de passe
-        <span style="background: #F85242; height: 100%; width: 0; border-radius: 25px; position: absolute; left: 0; bottom: 0; z-index: -1; transition: width 0.5s;"></span>
-      </button>
-    </a>
-    <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce mail.</p>` // Contenu HTML de l'e-mail
+      subject: 'Command Craftor - Réinitialisation de votre mot de passe', // Sujet de l'e-mail
+      // Sujet de l'e-mail
+      html: updatedPasswordReset
     });
 
     // console.log('Email sent successfully');
@@ -482,26 +492,27 @@ async function sendMailPasswordReset(req) {
   }
 }
 
-async function sendMailVerifyEmail(user) {
+async function sendMailVerifyEmail(req) {
   try {
-    const userId = user._id.toString();
-    const url = process.env.LINK_FRONT + '/users/email/validationupdate/?' + userId;
+    // const imagePath = './img/logo.png';
+    // const bs64 = await convertImageToBase64(imagePath);
+    // console.log(bs64)
+
+    let updatedVerifyEmail; 
+    const emailVerifyString = String(verifyEmail); // Conversion en chaîne
+    const link = process.env.LINK_FRONT + '/users/email/validationupdate/:email=' + req.body.email;
+
+    if (typeof emailVerifyString !== "string") {
+      console.error("Erreur : emailVerify n'est pas une chaîne !");
+  }
+      updatedVerifyEmail = emailVerifyString
+        .replace(/{{link}}/g, link);
+
     await transporter.sendMail({
       from: `"Command Craftor" <${process.env.EMAIL}>`,
       to: req.body.email,
       subject: 'Command Craftor - Verifier votre Mail',
-      html:
-        `<h2>Verification de Mail</h2>
-         <p>Appuyez sur le bouton pour pouvoir Valider Votre Mail</p>
-         <a href=${url}>
-           <button class="nav_button" style="width: 150px; padding: 10px; margin-left: 10px; font-size: 12px; text-transform: uppercase; position: relative; border-radius: 90px; border: 2px solid #F85242; background: #F85242; color: #FFFFFF; cursor: pointer; font-family: 'Insominia', sans-serif; overflow: hidden; z-index: 1;">Verifier Mon Mail
-             <span style="background: #F85242; height: 100%; width: 0; border-radius: 25px; position: absolute; left: 0; bottom: 0; z-index: -1; transition: width 0.5s;"></span>
-           </button>
-         </a>
-         <p>
-         <br><br>
-         Cordialement,
-         <br>Si vous n'avez pas demandé à recevoir cet e-mail, vous pouvez l'ignorer.</p>` // Contenu HTML de l'e-mail
+      html: updatedVerifyEmail
     });
     console.log('Email sent successfully');
     logger.info('Email sent successfully');
@@ -519,8 +530,7 @@ async function sendMailpasswordModify(userEmail) {
       from: `"Command Craftor" <${process.env.EMAIL}>`, // Adresse e-mail de l'expéditeur
       to: userEmail, // Adresse e-mail du destinataire
       subject: 'Command Craftor - Changement de Mots de Passe', // Sujet de l'e-mail
-      html:
-        '<h2>Modification de Mots de passe</h2><p>Votre mot de passe a été modifié.</p>', // Contenu HTML de l'e-mail
+      html: passwordModify
     });
 
     // console.log('Email sent successfully');

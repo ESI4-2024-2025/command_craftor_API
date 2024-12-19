@@ -9,6 +9,7 @@ const fs = require('fs')
 const logger = require('./logger')
 const swaggerUi = require('swagger-ui-express');
 const swaggerJSDoc = require('swagger-jsdoc');
+const mjml = require('mjml');
 
 // Options de configuration pour swagger-jsdoc
 const options = {
@@ -62,6 +63,24 @@ require('./routes/Bloc')(app)
 const PotionRoutes = require('./routes/Potion')
 app.use('/potion', PotionRoutes)
 require('./routes/Potion')(app)
+
+app.post('/convert', (req, res) => {
+  const { mjmlContent } = req.body;
+
+  if (!mjmlContent) {
+    return res.status(400).json({ error: 'MJML content is required' });
+  }
+
+  try {
+    const { html, errors } = mjml(mjmlContent);
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
+    }
+    res.json({ html });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 if (process.env.NODE_ENV === 'development') {
   http.createServer(app).listen(process.env.PORT ?? 3002, () => {
