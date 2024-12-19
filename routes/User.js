@@ -20,8 +20,8 @@ module.exports = function (app) {
     ], User.login) //OK
     //Get
     app.get('/users', User.getAllUsers)    //OK
-    app.put('/users/current', [authJwt.verifyToken], User.getCurrentProfile) //OK
-    app.get('/users/email/validationupdate/:email', User.emailValidationUpdate)  //A tester PLUS TARD // Besoin du Front
+    app.put('/users/current', /*[authJwt.verifyToken],*/ User.getCurrentProfile) //OK
+    app.get('/users/email/validationupdate/', User.emailValidationUpdate)  //A tester PLUS TARD // Besoin du Front
     //Put
     app.put('/users/update', /*[authJwt.verifyToken],*/[
         body('username').isLength({ max: 30 }).custom(async (value, { req }) => {
