@@ -479,11 +479,6 @@ exports.passwordModify = async (req, res) => {
 
 exports.profileUpdate = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      logger.warn('Validation error:', errors.array());
-      return res.status(400).json({ errors: errors.array() });
-    }
 
     let token = req.headers["x-access-token"] ?? '';
     const id = await new Promise((res, rej) => {
@@ -522,6 +517,8 @@ exports.profileUpdate = async (req, res) => {
     if (req.body.email && req.body.email !== user.email) {
       req.body.email_verified = false;
       await sendMailVerifyEmail(req);
+      user.email = req.body.email; // Update the email with the new one
+      user.email_verified = false; // Update the email with the new one
     }
 
     const updatedUser = await userModels.findByIdAndUpdate(id, { $set: req.body }, { new: true });

@@ -51,7 +51,6 @@ module.exports = function (app) {
                 return Promise.resolve();
             });
         }),
-        body('password').isLength({ max: 255 })
     ], User.profileUpdate) //Besoin Token
     app.put('/users/email/password-modify', [body('password').isLength({ max: 255 })], User.passwordModify) //Ok
     app.put('/users/email/verify', User.emailVerify) //OK
