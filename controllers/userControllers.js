@@ -380,7 +380,7 @@ exports.emailVerify = async (req, res) => {
       logger.warn('No user found with the provided email:', req.body.email);
       return res.status(404).send('User not found.');
     }
-    await sendMailVerifyEmail(user);
+    await sendMailVerifyEmail(req);
     res.status(200).send("Email 'Verification de Mail' Envoyer");
     logger.info('Email sent successfully');
   } catch (err) {
@@ -492,7 +492,7 @@ async function sendMailPasswordReset(req) {
   }
 }
 
-async function sendMailVerifyEmail(user) {
+async function sendMailVerifyEmail(req) {
   try {
     // const imagePath = './img/logo.png';
     // const bs64 = await convertImageToBase64(imagePath);
