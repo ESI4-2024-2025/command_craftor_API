@@ -285,6 +285,18 @@ module.exports = function (app) {
  *   post:
  *     tags: [Users/Email]
  *     summary: Réinitialisez le mot de passe de l'utilisateur via email.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *             required:
+ *               - email
  *     responses:
  *       '200':
  *         description: Email de réinitialisation du mot de passe envoyé avec succès
