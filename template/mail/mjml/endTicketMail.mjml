@@ -1,0 +1,42 @@
+<mjml>
+  <mj-head>
+    <mj-title>Fermeture de votre ticket</mj-title>
+    <mj-preview>Fermeture de votre ticket</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-all>
+      <mj-text font-weight="400" font-size="16px" color="#000000" line-height="24px" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"></mj-text>
+    </mj-attributes>
+    <mj-style inline="inline">.body-section {
+      -webkit-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
+      -moz-box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
+      box-shadow: 1px 4px 11px 0px rgba(0, 0, 0, 0.15);
+      }</mj-style>
+    <mj-style inline="inline">.text-link {
+      color: #5e6ebf
+      }</mj-style>
+    <mj-style inline="inline">.footer-link {
+      color: #888888
+      }</mj-style>
+  </mj-head>
+  <mj-body background-color="#383a40" width="600px">
+    <mj-section full-width="full-width" padding-bottom="0px">
+      <mj-column width="100%">
+        <mj-image src="https://commandcraftor.ebasson.fr/static/media/Logo.d028e665831d663ad979.png" alt="" align="center" width="450px"></mj-image>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#2b9c24">
+      <mj-column width="100%"></mj-column>
+    </mj-section>
+    <mj-wrapper padding-top="0" padding-bottom="0px" css-class="body-section">
+      <mj-section background-color="#8a6345" padding-left="15px" padding-right="15px">
+        <mj-column width="100%">
+          <mj-text color="#EEEEEE" font-weight="bold" font-size="20px">Fermeture de votre ticket</mj-text>
+          <mj-text color="#DDDDDD" font-size="16px">Votre demande ([{{Numéro_du_ticket}}] – [{{Objet_du_ticket}}]) a été résolue et le ticket est désormais fermé. N’hésitez pas à nous contacter si vous avez besoin d’une assistance supplémentaire</mj-text>
+                  <mj-text color="#DDDDDD" font-size="16px" padding-bottom="30px">
+										Cordialement,
+									</mj-text>
+        </mj-column>
+      </mj-section>
+    </mj-wrapper>
+  </mj-body>
+</mjml>
