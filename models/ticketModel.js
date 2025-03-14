@@ -9,6 +9,7 @@ const ticketSchema = Schema({
     email: { type: String, required: true },
     statut: { type: String, enum: Statut ? Object.values(Statut) : [], required: false, default: Statut?.EN_ATTENTE || 'EN_ATTENTE' },
     archived: { type: Boolean, required: false, default: false },
+    createdAt: { type: Date, default: Date.now }
 })
 
 module.exports = mongoose.model('Ticket', ticketSchema, 'Ticket')
