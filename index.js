@@ -44,25 +44,14 @@ app.use(express.urlencoded({ extended: true }))
 
 // parse application/json
 app.use(bodyParser.json())
-const UserRoutes = require('./routes/User')
-app.use('/user', UserRoutes)
-require('./routes/User')(app)
 
-const RequestRoutes = require('./routes/Request')
-app.use('/request', RequestRoutes)
-require('./routes/Request')(app)
+const routes = ['Ticket', 'User', 'Request', 'Item', 'Bloc', 'Potion'];
 
-const ItemRoutes = require('./routes/Item')
-app.use('/item', ItemRoutes)
-require('./routes/Item')(app)
-
-const BlocRoutes = require('./routes/Bloc')
-app.use('/bloc', BlocRoutes)
-require('./routes/Bloc')(app)
-
-const PotionRoutes = require('./routes/Potion')
-app.use('/potion', PotionRoutes)
-require('./routes/Potion')(app)
+routes.forEach(route => {
+  const routePath = `./routes/${route}`;
+  app.use(`/${route.toLowerCase()}`, require(routePath));
+  require(routePath)(app);
+});
 
 app.post('/convert', (req, res) => {
   const { mjmlContent } = req.body;
