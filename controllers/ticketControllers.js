@@ -9,6 +9,8 @@ const logger = require('../logger');
 const Statut = require('../models/Enum/statut');
 const Ticket = require('../models/ticketModel');
 const addTicketMail = require('../template/mail/addTicketMail');
+const endTicketMail = require('../template/mail/endTicketMail');
+const sendMail = require('../mailer/mailer');
 
 /**
  * Get all tickets.
@@ -33,8 +35,8 @@ exports.addTicket = async (req, res) => {
     const ticket = new Ticket(req.body);
     try {
         const newTicket = await ticket.save();
+        await this.sendCreationEmail(req);
         res.status(201).json(newTicket);
-        sendCreationEmail(req, res);
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
@@ -87,7 +89,17 @@ exports.updateTicketStatus = async (req, res) => {
     try {
         const ticket = await Ticket.findById(req.params.id);
         if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
-        ticket.statut = req.body.statut;
+        switch (req.body.statut) {
+            case 'En Attente':
+            ticket.statut = "EN_ATTENTE";
+            break;
+            case 'En Cours':
+            ticket.statut = "EN_COURS";
+            break;
+            case 'Fini':
+            ticket.statut = "FINI";
+            break;
+        }
         if(req.body.statut === Statut.FINI)
         {
             logger.info('Ticket closed');
@@ -106,24 +118,16 @@ exports.updateTicketStatus = async (req, res) => {
  * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  */
-exports.sendCreationEmail = async (req, res) => {
+exports.sendCreationEmail = async (req) => {
     try {
-    const emailVerifyString = String(addTicketMail); // Conversion en chaîne
-    if (typeof emailVerifyString !== "string") {
-        console.error("Erreur : addTicketMail n'est pas une chaîne !");
-    }
-    await transporter.sendMail({
-        from: `"Command Craftor" <${process.env.EMAIL}>`,
-        to: req.body.email,
-        subject: 'Command Craftor - Ticket Créé',
-        html: emailVerifyString
-        });
-    console.log('Email sent successfully');
-    logger.info('Email sent successfully');
+        const emailVerifyString = String(addTicketMail); // Conversion en chaîne
+        if (typeof emailVerifyString !== "string") {
+            console.error("Erreur : addTicketMail n'est pas une chaîne !");
+        }
+        await sendMail(req.body.email, 'Command Craftor - Ticket Créé', emailVerifyString);
     } catch (err) {
-        // console.error('Error while sending email:', err);
-    logger.error('Error while sending email:', err);
-    return err.status
+        logger.error('Error while sending email:', err);
+        return err.status;
     }
 };
 
@@ -135,7 +139,7 @@ exports.sendCreationEmail = async (req, res) => {
 exports.sendClosureEmail = async (req, ticket) => {
     try {
         let updatedVerifyEmail;
-        const emailVerifyString = String(addTicketMail); // Conversion en chaîne
+        const emailVerifyString = String(endTicketMail); // Conversion en chaîne
         const numero = ticket._id;
         const objet = ticket.titre;
         if (typeof emailVerifyString !== "string") {
@@ -143,19 +147,12 @@ exports.sendClosureEmail = async (req, ticket) => {
         }
 
         updatedVerifyEmail = emailVerifyString
-        .replace(/{{Numéro_du_ticket}}/g, numero).replace(/{{Objet_du_ticket}}/g, objet);
+            .replace(/{{Numéro_du_ticket}}/g, numero)
+            .replace(/{{Objet_du_ticket}}/g, objet);
 
-        await transporter.sendMail({
-            from: `"Command Craftor" <${ticket.email}>`,
-            to: ticket.email,
-            subject: 'Command Craftor - Fermeture de votre ticket n°' + ticket._id,
-            html: updatedVerifyEmail
-            });
-        console.log('Email sent successfully');
-        logger.info('Email sent successfully');
-        } catch (err) {
-            // console.error('Error while sending email:', err);
+        await sendMail(ticket.email, 'Command Craftor - Fermeture de votre ticket n°' + ticket._id, updatedVerifyEmail);
+    } catch (err) {
         logger.error('Error while sending email:', err);
-        return err.status
-        }
+        return err.status;
+    }
 };

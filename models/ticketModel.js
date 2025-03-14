@@ -8,7 +8,7 @@ const ticketSchema = Schema({
     corps: { type: String, required: true },
     email: { type: String, required: true },
     statut: { type: String, enum: Statut ? Object.values(Statut) : [], required: false, default: Statut?.EN_ATTENTE || 'EN_ATTENTE' },
-    archive: { type: Boolean, required: false, default: false },
+    archived: { type: Boolean, required: false, default: false },
 })
 
 module.exports = mongoose.model('Ticket', ticketSchema, 'Ticket')

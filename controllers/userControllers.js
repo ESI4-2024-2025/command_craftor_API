@@ -15,6 +15,7 @@ const { log } = require('console');
 const passwordReset = require('../template/mail/passwordReset.js');
 const passwordModify = require('../template/mail/passwordModify.js');
 const verifyEmail = require('../template/mail/verifyMail.js');
+const sendMail = require('../mailer/mailer.js');
 
 //================ Upload ======================//
 async function convertImageToBase64(filePath) {
@@ -41,25 +42,6 @@ function encryptPassword(password) {
     logger.error('An error occurred while encrypting the password.');
     throw new Error('An error occurred while encrypting the password.');
   }
-}
-
-//================ Contenue Transporteur ======================//
-let transporter;
-try {
-  transporter = nodemailer.createTransport({
-    host: 'smtp.hostinger.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL,
-      pass: process.env.PASSWORD_MAIL,
-    },
-  });
-  console.log('Transporter created successfully');
-  logger.info('Transporter created successfully');
-} catch (error) {
-  console.error('Error creating transporter:', error);
-  logger.error('Error creating transporter:', error);
 }
 
 //================ Login || Post ======================//
@@ -508,14 +490,7 @@ async function sendMailVerifyEmail(req) {
       updatedVerifyEmail = emailVerifyString
         .replace(/{{link}}/g, link);
 
-    await transporter.sendMail({
-      from: `"Command Craftor" <${process.env.EMAIL}>`,
-      to: req.body.email,
-      subject: 'Command Craftor - Verifier votre Mail',
-      html: updatedVerifyEmail
-    });
-    console.log('Email sent successfully');
-    logger.info('Email sent successfully');
+    await sendMail(req.body.email, 'Command Craftor - Verifier votre Mail', updatedVerifyEmail);
   } catch (err) {
     // console.error('Error while sending email:', err);
     logger.error('Error while sending email:', err);
@@ -525,16 +500,7 @@ async function sendMailVerifyEmail(req) {
 
 async function sendMailpasswordModify(userEmail) {
   try {
-    await transporter.sendMail({
-      secure: false, // true for 465, false for other ports
-      from: `"Command Craftor" <${process.env.EMAIL}>`, // Adresse e-mail de l'expéditeur
-      to: userEmail, // Adresse e-mail du destinataire
-      subject: 'Command Craftor - Changement de Mots de Passe', // Sujet de l'e-mail
-      html: passwordModify
-    });
-
-    // console.log('Email sent successfully');
-    logger.info('Email sent successfully');
+    await sendMail(userEmail, 'Command Craftor - Changement de Mots de Passe', passwordModify);
   } catch (err) {
     // console.error('Error while sending email:', err);
     logger.error('Error while sending email:', err);

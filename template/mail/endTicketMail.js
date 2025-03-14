@@ -169,7 +169,7 @@ const endTicketMail = `<!doctype html>
                               </tr>
                               <tr>
                                 <td align="left" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                                  <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#DDDDDD;">Votre demande ([{{Numéro_du_ticket}}] – [{{Objet_du_ticket}}]) a été résolue et le ticket est désormais fermé. N’hésitez pas à nous contacter si vous avez besoin d’une assistance supplémentaire</div>
+                                  <div style="font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;line-height:24px;text-align:left;color:#DDDDDD;">Votre demande (n°{{Numéro_du_ticket}} – {{Objet_du_ticket}}) a été résolue et le ticket est désormais fermé. N’hésitez pas à nous contacter si vous avez besoin d’une assistance supplémentaire</div>
                                 </td>
                               </tr>
                               <tr>
