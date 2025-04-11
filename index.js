@@ -84,8 +84,8 @@ if (process.env.NODE_ENV === 'development') {
   });
 } else {
   const httpsOptions = {
-    key: fs.readFileSync('/etc/letsencrypt/live/www.ebasson.fr/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/www.ebasson.fr/fullchain.pem')
+    key: fs.readFileSync(`${process.env.SSL_PATH}/privkey.pem`),
+    cert: fs.readFileSync(`${process.env.SSL_PATH}/fullchain.pem`)
   };
 
   https.createServer(httpsOptions, app).listen(process.env.PORT ?? 3002, () => {

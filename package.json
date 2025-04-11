@@ -5,7 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js",
-    "test": "jest"
+    "test": "jest",
+    "startBack": "pm2 delete commandCraftor || true && pm2 start index.js --name commandCraftor",
+    "update": "git fetch --all && git reset --hard origin/main && npm install",
+    "updateDeploy": "npm run update && npm run startBack",
+    "init": "pm2 start index.js --name commandCraftor && pm2 save"
   },
   "author": "Benjamin",
   "license": "ISC",
