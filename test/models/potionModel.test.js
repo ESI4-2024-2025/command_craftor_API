@@ -14,18 +14,18 @@ describe('Potion Model Test', () => {
         await mongoose.connection.close();
     }, 10000); // Increase timeout to 10 seconds
 
-    it('should create a potion with a version', async () => {
-        const potionData = { identifier: 'potion1', version: '1.0' };
+    it('should create a potion with a numeric id and a version', async () => {
+        const potionData = { id: 1, identifier: 'potion1', version: '1.0' };
         const validPotion = new Potion(potionData);
         const savedPotion = await validPotion.save();
 
-        expect(savedPotion._id).toBeDefined();
+        expect(savedPotion.id).toBe(potionData.id);
         expect(savedPotion.identifier).toBe(potionData.identifier);
         expect(savedPotion.version).toBe(potionData.version);
     });
 
     it('should fail to create a potion without a version', async () => {
-        const potionData = { identifier: 'potion2' };
+        const potionData = { id: 2, identifier: 'potion2' };
         const invalidPotion = new Potion(potionData);
         let err;
         try {
