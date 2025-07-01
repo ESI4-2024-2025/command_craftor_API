@@ -29,6 +29,6 @@ describe('GET /potion', () => {
 
         expect(response.status).toBe(500);
         expect(response.text).toBe('An error occurred while retrieving the current profile.');
-        expect(logger.error).toHaveBeenCalledWith('Potion information retrieved successfully.');
+        expect(logger.error).toHaveBeenCalledWith('Potion information not retrieved.');
     });
 });
