@@ -14,25 +14,47 @@ module.exports = function (app) {
      * @swagger
      * components:
      *   schemas:
+     *     Enchant:
+     *       type: object
+     *       properties:
+     *         identifier:
+     *           type: string
+     *         lvlMax:
+     *           type: number
+     *         version:
+     *           type: number
+     *         minecraft_id:
+     *           type: number
+     *     Materiaux:
+     *       type: object
+     *       properties:
+     *         identifier:
+     *           type: string
+     *         version:
+     *           type: number
+     *     Type:
+     *       type: object
+     *       properties:
+     *         name:
+     *           type: string
      *     Item:
      *       type: object
      *       properties:
-     *         Nom:
-     *           type: string
-     *           example: "Sword"
      *         identifier:
      *           type: string
      *           example: "sword"
      *         enchantement:
      *           type: array
      *           items:
-     *             type: number
-     *           example: [1, 2, 3]
+     *             $ref: '#/components/schemas/Enchant'
      *         materiaux:
      *           type: array
      *           items:
-     *             type: number
-     *           example: [1, 2]
+     *             $ref: '#/components/schemas/Materiaux'
+     *         version:
+     *           type: number
+     *         type:
+     *           $ref: '#/components/schemas/Type'
      */
 
     /**
@@ -40,7 +62,13 @@ module.exports = function (app) {
      * /getItem:
      *   get:
      *     tags: [Item]
-     *     summary: Get all items
+     *     summary: Get all items (avec enchantement, materiaux et type peuplés)
+     *     parameters:
+     *       - in: query
+     *         name: type
+     *         schema:
+     *           type: number
+     *         description: Filtrer les items par type
      *     responses:
      *       '200':
      *         description: Successful response
@@ -55,6 +83,6 @@ module.exports = function (app) {
     //Get
     app.get('/getItem', Item.getItem)
 
-    app.post('/addItem', Item.addItem);
+    // app.post('/addItem', Item.addItem);
 
 }

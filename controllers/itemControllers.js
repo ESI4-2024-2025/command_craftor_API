@@ -1,6 +1,7 @@
 const Item = require('../models/itemModel');
 const Enchant = require('../models/enchantModel');
 const Materiaux = require('../models/materiauxModel');
+const Type = require('../models/typeModel');
 const Version = require('../models/VersionsModel');
 const logger = require('../logger');
 
@@ -11,9 +12,15 @@ const logger = require('../logger');
  */
 exports.getItem = async (req, res) => {
     try {
-        // Récupérer tous les items
-        const items = await Item.find()
-            .select('identifier enchantement materiaux version')
+        // Vérifier si un type est fourni dans la requête (query string ou params)
+        const typeFilter = req.query.type || req.params.type;
+
+        // Construire le filtre pour la requête
+        const filter = typeFilter ? { type: typeFilter } : {};
+        console.log('Filter:', filter);
+        // Récupérer les items selon le filtre
+        const items = await Item.find(filter)
+            .select('identifier enchantement materiaux version type')
             .exec();
 
         // Peupler manuellement les enchantements et matériaux
@@ -22,20 +29,22 @@ exports.getItem = async (req, res) => {
                 .select('identifier lvlMax version minecraft_id');
             const materiaux = await Materiaux.find({ number: { $in: item.materiaux } })
                 .select('identifier version');
-
+            const type = await Type.findOne({ number: item.type })
+                .select('name');
             return {
                 ...item.toObject(),
                 enchantement: enchantements,
-                materiaux: materiaux
+                materiaux: materiaux,
+                type: type
             };
         }));
 
         res.status(200).send(populatedItems);
-        logger.info('Item information retrieved successfully.', populatedItems.id);
+        logger.info('Item information retrieved successfully.');
     } catch (err) {
         console.error(err);
         res.status(500).send("An error occurred, Retry Later.");
-        logger.error('Item information retrieved successfully.', err);
+        logger.error('Item information retrieval failed.', err);
     }
 };
 
@@ -45,18 +54,18 @@ exports.getItem = async (req, res) => {
  * @param {Object} req - The request object.
  * @param {Object} res - The response object.
  */
-exports.addItem = async (req, res) => {
-    try {
-        const newItem = new Item(req.body);
-        const savedItem = await newItem.save();
-        res.status(201).send(savedItem);
-        logger.info('Item added successfully.', savedItem.id);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("An error occurred, Retry Later.");
-        logger.error('Item added successfully.', err);
-    }
-};
+// exports.addItem = async (req, res) => {
+//     try {
+//         const newItem = new Item(req.body);
+//         const savedItem = await newItem.save();
+//         res.status(201).send(savedItem);
+//         logger.info('Item added successfully.', savedItem.id);
+//     } catch (err) {
+//         console.error(err);
+//         res.status(500).send("An error occurred, Retry Later.");
+//         logger.error('Item added successfully.', err);
+//     }
+// };
 
 /**
  * Add a new enchant.
