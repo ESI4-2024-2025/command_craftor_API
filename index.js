@@ -45,12 +45,26 @@ app.use(express.urlencoded({ extended: true }))
 // parse application/json
 app.use(bodyParser.json())
 
-const routes = ['Ticket', 'User', 'Request', 'Item', 'Bloc', 'Potion'];
+const routes = ['Ticket', 'User', 'Request', 'Item', 'Bloc', 'Potion', 'Version'];
 
 routes.forEach(route => {
   const routePath = `./routes/${route}`;
-  app.use(`/${route.toLowerCase()}`, require(routePath));
-  require(routePath)(app);
+  try {
+    const routeModule = require(routePath);
+    // Pour Version, on utilise uniquement la fonction d'enregistrement de route (pas app.use)
+    if (route === 'Version') {
+      if (typeof routeModule === 'function') {
+        routeModule(app);
+      }
+    } else {
+      app.use(`/${route.toLowerCase()}`, routeModule);
+      if (typeof routeModule === 'function') {
+        routeModule(app);
+      }
+    }
+  } catch (err) {
+    logger.error(`Erreur lors du chargement de la route ${route}: ${err.message}`);
+  }
 });
 
 app.post('/convert', (req, res) => {

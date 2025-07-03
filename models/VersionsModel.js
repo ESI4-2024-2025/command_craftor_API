@@ -6,6 +6,7 @@ const versionschema = Schema({
     number: { type: Number, unique: true },
     value: { type: Number, required: true },
     version: { type: String, required: true },
+    majeur: { type: Boolean, required: true },
 });
 
 versionschema.pre('save', function (next) {
