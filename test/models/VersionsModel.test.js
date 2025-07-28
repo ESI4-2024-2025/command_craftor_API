@@ -33,7 +33,7 @@ describe('VersionsModel', () => {
     });
 
     it('should save a version with a valid value', async () => {
-        const version = new VersionsModel({ value: 1, version: '1.0.0' });
+        const version = new VersionsModel({ value: 1, version: '1.0.0', majeur: 1 });
 
         await version.save();
 

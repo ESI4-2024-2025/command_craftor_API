@@ -13,8 +13,8 @@ itemRoutes(app);
 describe('Item Routes', () => {
     it('should return all items', async () => {
         const mockItems = [
-            { Nom: 'Sword', identifier: 'sword', enchantement: [1, 2, 3], materiaux: [1, 2] },
-            { Nom: 'Shield', identifier: 'shield', enchantement: [4, 5, 6], materiaux: [3, 4] }
+            { Nom: 'Helmet', identifier: 'helmet', enchantement: [1, 2, 3], materiaux: [1, 2], type: 1 },
+            { Nom: 'Shield', identifier: 'shield', enchantement: [4, 5, 6], materiaux: [3, 4], type: 2 }
         ];
         ItemController.getItem.mockImplementation((req, res) => res.status(200).json(mockItems));
 
